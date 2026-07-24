@@ -1,0 +1,52 @@
+# Factor weights (BTI = weighted sum over f1..f5; f6 display-only).
+# Changes to this file are the Forge audit surface — one commit per change.
+factor_weights:
+  f1: 0.25   # Liquidity withdrawal
+  f2: 0.20   # Bellwether earnings quality
+  f3: 0.20   # Circular financing
+  f4: 0.15   # Insider selling & lockup supply
+  f5: 0.20   # Breadth & concentration
+  f6: 0.00   # Narrative temperature — coincident, displayed, excluded
+
+factor_names:
+  f1: Liquidity
+  f2: Bellwethers
+  f3: Circular financing
+  f4: Insiders
+  f5: Breadth
+  f6: Narrative temp
+
+factor_descriptions:
+  f1: Forward-looking tightening pressure — implied path, rhetoric, real rates
+  f2: Forward earnings picture for the 8-name bellwether universe
+  f3: Revenue funded by your own capital, measured against balance-sheet size
+  f4: Insider supply — mega-sales, sell/buy ratio, lockup overhang
+  f5: Pure quant — concentration, cap-vs-equal-weight, participation
+  f6: Hype-language density vs the cited 1999 press baseline
+
+# Radar dashed outline — per-factor level historically consistent with
+# late-stage conditions. Placeholder values until researched+cited in Pass 4.
+danger_thresholds:
+  f1: 75
+  f2: 60
+  f3: 65
+  f4: 70
+  f5: 80
+
+bti_zones:            # gauge coloring
+  calm: [0, 40]
+  elevated: [40, 70]
+  danger: [70, 100]
+
+# F3 sub-score mix (f3-circularity-query-battery.md §3)
+f3_mix:
+  circularity_ratio: 0.50
+  cmi_stage2: 0.25
+  cmi_stage1: 0.25
+
+cmi_weights: { formation: 0.4, destruction: 0.4, intensity: 0.2 }
+
+circularity_ratio_tiers:   # % of total assets
+  normal_below: 1.0
+  elevated_1999_band: [1.0, 3.0]
+  exceeds_1999_above: 3.0

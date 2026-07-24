@@ -1,0 +1,16 @@
+# Event-type -> signal strength. THE map lives here, not in any LLM —
+# models extract events; this file classifies them (HANDOVER §4).
+event_strength:
+  guidance_cut: strong
+  guidance_withdrawn: strong
+  reported_miss: strong
+  impairment: strong
+  order_cancellation: strong
+  covenant_issue: strong
+  auditor_change: strong
+  analyst_estimate_cut: weak
+  price_target_cut: weak
+  gpu_spot_drift: weak
+  people_familiar_report: weak
+  contract_renegotiation_rumor: weak
+  short_thesis: weak

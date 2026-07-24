@@ -1,0 +1,114 @@
+# The 12-row signature board. Order here = board order (grouped by factor).
+# lamp rule (HANDOVER §4): strong_count >= 1 -> fired · weak_count >= k_weak -> partial
+#                          weak_count 1..k-1 -> watch · else -> not · unmeasurable -> no_data
+# precedent_1999 text+citations are PLACEHOLDERS until researched via You.com in Pass 4
+# (marked TODO-cite). Thresholds live here, never in the LLM.
+
+signatures:
+  - id: sig-f1-path
+    factor: f1
+    name: Tightening path steepens
+    stage: early
+    k_weak: 3
+    threshold_text: "fires when implied 12m path steepness > +100bp"
+    precedent_1999: "Jun-99 first hike; by Feb-00 the path priced +125bp/12m"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f1-rhetoric
+    factor: f1
+    name: Fed rhetoric turns hawkish
+    stage: early
+    k_weak: 3
+    threshold_text: "fires when rhetoric delta (last 5 vs prior 5 speeches) > +0.4"
+    precedent_1999: "Greenspan 'irrational exuberance' posture hardened through H2-99"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f2-revisions
+    factor: f2
+    name: Estimate revisions turn negative
+    stage: mid
+    k_weak: 3
+    threshold_text: "fires when median bellwether NTM revision < 0 for 2 consecutive checks"
+    precedent_1999: "Revisions for the CSCO/NT complex decelerated ~2 quarters pre-peak"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f2-guidance
+    factor: f2
+    name: Bellwether guidance cracks
+    stage: late
+    k_weak: 3
+    threshold_text: "fires on any strong event: guidance cut/withdrawn or reported miss vs own guidance"
+    precedent_1999: "Mar-00 onward: serial guidance walk-backs across infrastructure vendors"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f2-gpu
+    factor: f2
+    name: GPU spot prices rolling over
+    stage: mid
+    k_weak: 3
+    threshold_text: "fires when H100/B200 spot 30d change < -15% (median of sources)"
+    precedent_1999: "No physical-capacity proxy existed; nearest analog was router/DRAM channel pricing"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f3-churn
+    factor: f3
+    name: Usage-layer churn accelerating
+    stage: early
+    k_weak: 3
+    threshold_text: "fires when S1-Q4 destruction >= threshold for 2 consecutive weeks"
+    precedent_1999: "Dot-com ad-revenue dependents began failing quarters before infrastructure cracked"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f3-drift
+    factor: f3
+    name: Revenue definition drift at labs
+    stage: mid
+    k_weak: 2
+    threshold_text: "fires on any S1-B1 drift event (metric redefinition in official/press statements)"
+    precedent_1999: "Barter/ad-swap 'revenue' at portals; pro-forma metrics displacing GAAP"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f3-vendor
+    factor: f3
+    name: Vendor-financed revenue material
+    stage: mid
+    k_weak: 3
+    threshold_text: "fires when Circularity Ratio >= 1% of assets OR Revenue Quality score <= 0.6"
+    precedent_1999: "Lucent/Nortel/Cisco vendor financing peaked ≈$15-25B, CR ≈ 2-3%"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f3-distress
+    factor: f3
+    name: Capex-layer edge distress
+    stage: late
+    k_weak: 2
+    threshold_text: "fires on any strong S2-Q5/S2-B1 event touching a registry edge"
+    precedent_1999: "Vendor-financed carriers defaulted, forcing Lucent/Nortel writedowns"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f4-megasale
+    factor: f4
+    name: Insider mega-sale wave
+    stage: late
+    k_weak: 3
+    threshold_text: "fires when >$100M single-insider sale programs (90d) >= 4"
+    precedent_1999: "Insider selling ran ≈3-4x historical norm through H2-99"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f5-concentration
+    factor: f5
+    name: Concentration at record
+    stage: early
+    k_weak: 3
+    threshold_text: "fires when top-10 S&P weight > 38%"
+    precedent_1999: "Top-10 weight peaked ≈27% in Mar-00 — today already exceeds it"   # TODO-cite
+    precedent_citation_url: null
+
+  - id: sig-f5-breadth
+    factor: f5
+    name: Breadth divergence extreme
+    stage: mid
+    k_weak: 3
+    threshold_text: "fires when SPY-RSP 6m gap > 8pp AND %>200dma < 45%"
+    precedent_1999: "NYSE breadth negative from Apr-98 while the index made highs into Mar-00"   # TODO-cite
+    precedent_citation_url: null

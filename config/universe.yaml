@@ -1,0 +1,8 @@
+# Hardcoded universes (HANDOVER §6). Agents enrich; they never pick names.
+bellwethers: [NVDA, MSFT, META, GOOGL, AVGO, AMZN, ORCL, CRWV]
+neoclouds: [CRWV, NBIS]
+labs: [OpenAI, Anthropic]
+hero_current_index: "^IXIC"     # Section B default (config: Nasdaq)
+hero_1999_index: "^IXIC"
+rate_cycle_anchor_now: "2024-09-18"   # current cycle start for the Rates toggle
+rate_cycle_anchor_1999: "1999-06-30"  # first hike of the 1999 cycle
