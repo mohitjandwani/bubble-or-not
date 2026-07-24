@@ -1,0 +1,252 @@
+[
+  {
+    "evidence_id": "ev-sig-f1-path-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f1",
+    "probe_id": "probe-sig-f1-path",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "path_steepness_bp",
+    "value": 85.0,
+    "unit": "bp",
+    "as_of": "2026-07-20",
+    "quote": "Futures-implied policy path stands 85bp above the current effective rate at the 12-month horizon.",
+    "source_url": "https://example.com/fixture/rates",
+    "confidence": "high",
+    "provenance": {
+      "endpoint": "fmp",
+      "params": "federalFunds",
+      "cost_usd": 0,
+      "elapsed_s": 0.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f1-rhetoric-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f1",
+    "probe_id": "probe-sig-f1-rhetoric",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "rhetoric_delta",
+    "value": 0.3,
+    "unit": "score",
+    "as_of": "2026-07-20",
+    "quote": "Inflation persistence remains the primary risk to the outlook, and further firming may be warranted.",
+    "source_url": "https://www.federalreserve.gov/fixture-speech",
+    "confidence": "medium",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f2-revisions-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f2",
+    "probe_id": "probe-sig-f2-revisions",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "revision_momentum_pct",
+    "value": 1.8,
+    "unit": "%",
+    "as_of": "2026-07-20",
+    "quote": "Consensus NTM EPS for the bellwether cohort has risen 1.8% over the trailing window.",
+    "source_url": "https://example.com/fixture/estimates",
+    "confidence": "high",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f2-guidance-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f2",
+    "probe_id": "probe-sig-f2-guidance",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "guidance_tone",
+    "value": 6.4,
+    "unit": "score",
+    "as_of": "2026-07-20",
+    "quote": "We are raising our full-year outlook on continued strong data-center demand.",
+    "source_url": "https://example.com/fixture/transcript",
+    "confidence": "medium",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f2-gpu-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f2",
+    "probe_id": "probe-sig-f2-gpu",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "gpu_spot_30d_pct",
+    "value": -9.0,
+    "unit": "%",
+    "as_of": "2026-07-20",
+    "quote": "H100 hourly spot pricing has drifted from $2.20 to $2.00 over the past month.",
+    "source_url": "https://example.com/fixture/gpu",
+    "confidence": "low",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f3-churn-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f3",
+    "probe_id": "probe-sig-f3-churn",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "destruction_count",
+    "value": 4.0,
+    "unit": "events",
+    "as_of": "2026-07-20",
+    "quote": "The startup said it is winding down operations, citing unsustainable API costs.",
+    "source_url": "https://example.com/fixture/shutdown",
+    "confidence": "medium",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f3-drift-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f3",
+    "probe_id": "probe-sig-f3-drift",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "drift_event",
+    "value": 1.0,
+    "unit": "event",
+    "as_of": "2026-07-20",
+    "quote": "The company now reports 'annualized run-rate revenue including committed contracts'.",
+    "source_url": "https://example.com/fixture/arr",
+    "confidence": "high",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f3-vendor-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f3",
+    "probe_id": "probe-sig-f3-vendor",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "circularity_ratio_pct",
+    "value": 1.4,
+    "unit": "%",
+    "as_of": "2026-07-20",
+    "quote": "Purchase commitments to the supplier total $7.8 billion; the supplier holds an equity stake.",
+    "source_url": "https://www.sec.gov/fixture-filing",
+    "confidence": "medium",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "deep",
+      "params": "include_domains=sec.gov",
+      "cost_usd": 0.1,
+      "elapsed_s": 28.0
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f3-vendor-2",
+    "run_id": "run-fixture-0001",
+    "factor": "f3",
+    "probe_id": "probe-sig-f3-vendor",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "circularity_ratio_pct",
+    "value": 2.1,
+    "unit": "%",
+    "as_of": "2026-07-20",
+    "quote": "Related-party purchase obligations imply a materially higher circular share.",
+    "source_url": "https://example.com/fixture/conflict",
+    "confidence": "low",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f3-distress-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f3",
+    "probe_id": "probe-sig-f3-distress",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "distress_events",
+    "value": 0.0,
+    "unit": "events",
+    "as_of": "2026-07-20",
+    "quote": "none_found",
+    "source_url": "https://example.com/fixture/none",
+    "confidence": "high",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f4-megasale-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f4",
+    "probe_id": "probe-sig-f4-megasale",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "mega_sale_count_90d",
+    "value": 3.0,
+    "unit": "programs",
+    "as_of": "2026-07-20",
+    "quote": "The filing discloses a new 10b5-1 plan covering shares worth approximately $180 million.",
+    "source_url": "https://example.com/fixture/form4",
+    "confidence": "low",
+    "provenance": {
+      "endpoint": "research",
+      "effort": "standard",
+      "params": "freshness=2026-06-24to2026-07-24",
+      "cost_usd": 0.05,
+      "elapsed_s": 12.4
+    }
+  },
+  {
+    "evidence_id": "ev-sig-f5-concentration-1",
+    "run_id": "run-fixture-0001",
+    "factor": "f5",
+    "probe_id": "probe-sig-f5-concentration",
+    "window": "2026-06-24to2026-07-24",
+    "metric": "top10_weight_pct",
+    "value": 39.4,
+    "unit": "%",
+    "as_of": "2026-07-20",
+    "quote": "Computed from FMP constituent market caps \u2014 no LLM in the loop.",
+    "source_url": "https://example.com/fixture/fmp",
+    "confidence": "high",
+    "provenance": {
+      "endpoint": "fmp",
+      "params": "sp500_constituent+quotes",
+      "cost_usd": 0,
+      "elapsed_s": 1.1
+    }
+  }
+]

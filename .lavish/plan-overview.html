@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bubble or Not — Implementation Plan</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --bg:#0B0E14; --panel:#11151E; --panel2:#151B27; --border:#1E2430; --border2:#2A3342;
+    --txt:#E6EDF3; --dim:#8B95A7; --faint:#5A6478;
+    --amber:#C8933A; --cyan:#7DD3FC; --red:#E5484D; --yellow:#EAB308; --green:#34D399; --gray:#4B5563;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;min-width:0}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.55 -apple-system,"Inter","Segoe UI",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px 80px}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  /* top bar — mimics the product's sticky bar */
+  .topbar{position:sticky;top:0;z-index:10;background:rgba(11,14,20,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border)}
+  .topbar-in{max-width:1120px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .wordmark{font-weight:700;letter-spacing:-.02em}
+  .wordmark .q{color:var(--amber)}
+  .spacer{flex:1}
+  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);border-radius:99px;
+    padding:3px 12px;font-size:12.5px;color:var(--dim);white-space:nowrap}
+  .chip .dot{width:8px;height:8px;border-radius:99px;flex:none}
+  .dot-g{background:var(--green)} .dot-c{background:var(--cyan)} .dot-a{background:var(--amber)}
+  .dot-r{background:var(--red)} .dot-y{background:var(--yellow)} .dot-n{background:var(--gray)}
+  .dot-h{background:repeating-linear-gradient(45deg,var(--gray) 0 2px,transparent 2px 4px);border:1px solid var(--gray)}
+
+  h1{font-size:30px;letter-spacing:-.03em;margin:44px 0 6px}
+  .sub{color:var(--dim);max-width:72ch;margin:0 0 8px}
+  h2{font-size:19px;letter-spacing:-.02em;margin:56px 0 4px;display:flex;align-items:center;gap:10px}
+  h2 .k{font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--border2);
+    border-radius:4px;padding:2px 7px;letter-spacing:.08em}
+  .h2sub{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+  a{color:var(--cyan);text-decoration:none}
+
+  /* ============ painter strip ============ */
+  .strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-top:18px}
+  .cv{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 10px 8px;
+    display:flex;flex-direction:column;gap:5px;position:relative}
+  .cv.next{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset}
+  .cv-tag{font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.06em;margin-bottom:2px;
+    display:flex;justify-content:space-between;align-items:center}
+  .cv-tag b{color:var(--dim);font-weight:600}
+  .cv-note{font-size:11px;color:var(--dim);line-height:1.35;margin-top:5px;min-height:44px}
+  .cv-note em{color:var(--txt);font-style:normal;font-weight:600}
+  /* mock dashboard rows inside each canvas */
+  .m-head{display:flex;align-items:center;gap:5px;height:16px}
+  .m-gauge{width:22px;height:11px;border-radius:22px 22px 0 0;border:2px solid var(--gray);border-bottom:none;flex:none}
+  .m-gauge.on{border-color:var(--cyan)}
+  .m-dots{display:flex;gap:2.5px;flex:1;flex-wrap:nowrap;overflow:hidden}
+  .m-dots i{width:5px;height:5px;border-radius:99px;background:var(--gray);flex:none}
+  .m-dots i.r{background:var(--red)} .m-dots i.y{background:var(--yellow)}
+  .m-dots i.h{background:repeating-linear-gradient(45deg,var(--gray) 0 1.5px,transparent 1.5px 3px);border:.5px solid var(--gray)}
+  .m-hero{height:44px;border:1px dashed var(--border2);border-radius:5px;position:relative;overflow:hidden;background:var(--panel2)}
+  .m-hero svg{position:absolute;inset:0;width:100%;height:100%}
+  .m-hero .lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:9px;color:var(--faint);letter-spacing:.1em}
+  .m-board{display:flex;flex-direction:column;gap:3px}
+  .m-row{display:flex;align-items:center;gap:4px;height:7px}
+  .m-lamp{width:6px;height:6px;border-radius:99px;background:var(--gray);flex:none}
+  .m-lamp.r{background:var(--red)} .m-lamp.y{background:var(--yellow)} .m-lamp.g{background:var(--gray)}
+  .m-lamp.h{background:repeating-linear-gradient(45deg,var(--gray) 0 1.5px,transparent 1.5px 3px);border:.5px solid var(--gray)}
+  .m-bar{flex:1;height:3.5px;border-radius:2px;background:var(--border2);overflow:hidden}
+  .m-bar i{display:block;height:100%;border-radius:2px;background:var(--gray)}
+  .m-bar i.c{background:var(--cyan)} .m-bar i.a{background:var(--amber)} .m-bar i.rd{background:var(--red)}
+  .m-duo{display:flex;gap:5px;height:26px}
+  .m-radar{flex:3;border:1px dashed var(--border2);border-radius:4px;position:relative;overflow:hidden;background:var(--panel2)}
+  .m-radar svg{position:absolute;inset:0;width:100%;height:100%}
+  .m-thermo{flex:1;border:1px dashed var(--border2);border-radius:4px;position:relative;overflow:hidden;background:var(--panel2)}
+  .m-thermo i{position:absolute;bottom:0;left:0;right:0;background:var(--amber);opacity:.85}
+  .m-strip{display:flex;gap:3px;height:12px}
+  .m-strip i{flex:1;border-radius:3px;background:var(--border2)}
+  .m-strip i.on{background:linear-gradient(180deg,var(--panel2),var(--panel2)) padding-box,var(--cyan);border:1px solid var(--cyan);opacity:.9}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--dim)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+
+  /* ============ pass cards ============ */
+  .passes{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+  .pass{display:grid;grid-template-columns:64px minmax(0,1.35fr) minmax(0,1fr) 120px;gap:0;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .pass.done{border-color:rgba(52,211,153,.35)}
+  .pass.next{border-color:var(--cyan)}
+  .p-num{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    border-right:1px solid var(--border);background:var(--panel2);padding:16px 8px}
+  .p-num b{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--txt)}
+  .p-num s{font-size:10px;color:var(--faint);text-decoration:none;letter-spacing:.08em}
+  .p-main{padding:16px 20px}
+  .p-title{font-weight:650;letter-spacing:-.01em;margin-bottom:2px}
+  .p-layer{font-size:12.5px;color:var(--cyan);margin-bottom:8px}
+  .p-layer.q{color:var(--amber)}
+  .p-desc{font-size:13.5px;color:var(--dim)}
+  .p-desc b{color:var(--txt);font-weight:600}
+  .p-test{padding:16px 20px;border-left:1px dashed var(--border);font-size:13px;color:var(--dim)}
+  .p-test h4{margin:0 0 7px;font-size:10.5px;letter-spacing:.12em;color:var(--faint);font-weight:600}
+  .p-test ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+  .p-test li{padding-left:18px;position:relative}
+  .p-test li::before{content:"□";position:absolute;left:0;color:var(--faint)}
+  .pass.done .p-test li::before{content:"✓";color:var(--green)}
+  .p-side{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;
+    padding:16px;border-left:1px solid var(--border);background:var(--panel2);gap:10px}
+  .badge{font-size:11px;font-weight:600;letter-spacing:.06em;border-radius:5px;padding:3px 9px;white-space:nowrap}
+  .b-done{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.4)}
+  .b-next{background:rgba(125,211,252,.1);color:var(--cyan);border:1px solid rgba(125,211,252,.4)}
+  .b-wait{background:transparent;color:var(--faint);border:1px solid var(--border2)}
+  .p-meta{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:right;line-height:1.7}
+  .p-meta b{color:var(--dim);font-weight:500}
+
+  /* ============ pass-0 receipts ============ */
+  table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13.5px}
+  th{font-size:10.5px;letter-spacing:.12em;color:var(--faint);text-align:left;font-weight:600;
+    padding:8px 14px;border-bottom:1px solid var(--border2)}
+  td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--dim)}
+  td:first-child{color:var(--txt);white-space:nowrap}
+  td .num{color:var(--txt)}
+  .ok{color:var(--green);font-weight:600;white-space:nowrap}
+  .warn{color:var(--yellow);font-weight:600;white-space:nowrap}
+  q{color:var(--amber);font-style:italic;quotes:"“" "”"}
+
+  /* ============ diagram ============ */
+  .diagram{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:18px;overflow-x:auto}
+  .diagram .mermaid{display:flex;justify-content:center}
+
+  /* ============ risks ============ */
+  .risks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+  .risk{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--yellow);
+    border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--dim)}
+  .risk.hard{border-left-color:var(--red)}
+  .risk b{color:var(--txt);display:block;margin-bottom:4px;font-size:14px}
+  .risk .fix{margin-top:6px;color:var(--dim)}
+  .risk .fix::before{content:"→ ";color:var(--green)}
+
+  /* ============ rules footer ============ */
+  .rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+  .rule{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+  .rule b{display:block;font-size:13.5px;margin-bottom:4px}
+  .rule p{margin:0;font-size:12.5px;color:var(--dim)}
+  .cut{margin-top:26px;border:1px dashed var(--red);border-radius:10px;padding:14px 18px;font-size:13.5px;color:var(--dim)}
+  .cut b{color:var(--red)}
+
+  @media (max-width:900px){
+    .strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .pass{grid-template-columns:52px minmax(0,1fr)}
+    .p-test{border-left:none;border-top:1px dashed var(--border);grid-column:2}
+    .p-side{border-left:none;border-top:1px solid var(--border);grid-column:2;flex-direction:row;align-items:center}
+    .risks,.rules{grid-template-columns:minmax(0,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-in">
+  <span class="wordmark">Bubble or Not<span class="q">?</span> <span style="color:var(--faint);font-weight:400;font-size:12.5px">· implementation plan</span></span>
+  <span class="spacer"></span>
+  <span class="chip"><span class="dot dot-g"></span>Pass 0 complete</span>
+  <span class="chip"><span class="dot dot-c"></span>next: Pass 1 — walking skeleton</span>
+  <span class="chip num">You.com credits $98.74</span>
+</div></div>
+
+<div class="wrap">
+
+<h1>Nine passes, one canvas</h1>
+<p class="sub">The plan works like a painter: <b>Pass&nbsp;1 puts the entire product on screen in rough strokes</b> — every UI section, every API endpoint, a fake pipeline you can trigger — and each later pass swaps exactly <b>one layer</b> from fake→real or rough→detailed. If the hackathon clock dies after <i>any</i> pass, you still demo a complete whole, never a perfect hand on an empty canvas.</p>
+<p class="sub" style="font-size:13px">Full detail lives in <a href="#">PLAN.md</a>; source specs in <span class="num" style="font-size:12px">hackathon_handoff/</span>. This page is the map, not the territory.</p>
+
+<!-- ================= PAINTER STRIP ================= -->
+<h2><span class="k">METHOD</span> The canvas, pass by pass</h2>
+<p class="h2sub">Each thumbnail is the same dashboard. Gray&nbsp;=&nbsp;fake/skeleton · <span style="color:var(--cyan)">cyan</span>&nbsp;=&nbsp;real live data · <span style="color:var(--amber)">amber</span>&nbsp;=&nbsp;real 1999 benchmark data · <span style="color:var(--red)">red/yellow</span>&nbsp;=&nbsp;signature lamps driven by real evidence.</p>
+
+<div class="strip">
+  <!-- P1 skeleton -->
+  <div class="cv next">
+    <div class="cv-tag"><b>PASS 1</b><span>all fake</span></div>
+    <div class="m-head"><span class="m-gauge"></span><span class="m-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+    <div class="m-hero"><span class="lbl">FIXTURE</span></div>
+    <div class="m-board">
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i style="width:40%"></i></span></div>
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i style="width:55%"></i></span></div>
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i style="width:30%"></i></span></div>
+      <div class="m-row"><span class="m-lamp h"></span><span class="m-bar"><i style="width:20%"></i></span></div>
+    </div>
+    <div class="m-duo"><span class="m-radar"></span><span class="m-thermo"><i style="height:40%;background:var(--gray)"></i></span></div>
+    <div class="m-strip"><i></i><i></i><i></i><i></i></div>
+    <div class="cv-note"><em>Everything exists, nothing is real.</em> All 6 sections, all 5 endpoints, fake 15s pipeline run.</div>
+  </div>
+
+  <!-- P2 quant real -->
+  <div class="cv">
+    <div class="cv-tag"><b>PASS 2</b><span>quant real</span></div>
+    <div class="m-head"><span class="m-gauge"></span><span class="m-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+    <div class="m-hero">
+      <svg viewBox="0 0 100 44" preserveAspectRatio="none">
+        <polyline points="2,38 20,34 38,26 52,10 62,20 78,30 98,36" fill="none" stroke="#C8933A" stroke-width="1.6"/>
+        <polyline points="2,40 30,32 60,22 98,8" fill="none" stroke="#7DD3FC" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <div class="m-board">
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i style="width:40%"></i></span></div>
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i style="width:55%"></i></span></div>
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i style="width:30%"></i></span></div>
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i class="c" style="width:62%"></i></span></div>
+    </div>
+    <div class="m-duo"><span class="m-radar"></span><span class="m-thermo"><i style="height:40%;background:var(--gray)"></i></span></div>
+    <div class="m-strip"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="cv-note"><em>Postgres + pure math.</em> Both-era hero data, F5 breadth score, quant strip — zero LLM, provably deterministic.</div>
+  </div>
+
+  <!-- P3 first agent -->
+  <div class="cv">
+    <div class="cv-tag"><b>PASS 3</b><span>first agent</span></div>
+    <div class="m-head"><span class="m-gauge"></span><span class="m-dots"><i></i><i></i><i></i><i class="y"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+    <div class="m-hero">
+      <svg viewBox="0 0 100 44" preserveAspectRatio="none">
+        <polyline points="2,38 20,34 38,26 52,10 62,20 78,30 98,36" fill="none" stroke="#C8933A" stroke-width="1.6"/>
+        <polyline points="2,40 30,32 60,22 98,8" fill="none" stroke="#7DD3FC" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <div class="m-board">
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i style="width:40%"></i></span></div>
+      <div class="m-row"><span class="m-lamp y"></span><span class="m-bar"><i class="a" style="width:48%"></i></span></div>
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i style="width:30%"></i></span></div>
+      <div class="m-row"><span class="m-lamp"></span><span class="m-bar"><i class="c" style="width:62%"></i></span></div>
+    </div>
+    <div class="m-duo"><span class="m-radar"></span><span class="m-thermo"><i style="height:40%;background:var(--gray)"></i></span></div>
+    <div class="m-strip"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="cv-note"><em>One vertical slice live.</em> You.com → typed evidence → lamp → clickable citations + trace. The rest is repetition.</div>
+  </div>
+
+  <!-- P4 all factors -->
+  <div class="cv">
+    <div class="cv-tag"><b>PASS 4</b><span>all factors</span></div>
+    <div class="m-head"><span class="m-gauge on"></span><span class="m-dots"><i class="r"></i><i></i><i class="y"></i><i class="y"></i><i></i><i class="r"></i><i></i><i class="h"></i><i></i><i class="y"></i><i></i><i></i></span></div>
+    <div class="m-hero">
+      <svg viewBox="0 0 100 44" preserveAspectRatio="none">
+        <polyline points="2,38 20,34 38,26 52,10 62,20 78,30 98,36" fill="none" stroke="#C8933A" stroke-width="1.6"/>
+        <polyline points="2,40 30,32 60,22 98,8" fill="none" stroke="#7DD3FC" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <div class="m-board">
+      <div class="m-row"><span class="m-lamp r"></span><span class="m-bar"><i class="rd" style="width:72%"></i></span></div>
+      <div class="m-row"><span class="m-lamp y"></span><span class="m-bar"><i class="a" style="width:48%"></i></span></div>
+      <div class="m-row"><span class="m-lamp h"></span><span class="m-bar"><i style="width:22%"></i></span></div>
+      <div class="m-row"><span class="m-lamp g"></span><span class="m-bar"><i class="c" style="width:62%"></i></span></div>
+    </div>
+    <div class="m-duo"><span class="m-radar"></span><span class="m-thermo"><i style="height:58%"></i></span></div>
+    <div class="m-strip"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="cv-note"><em>Real BTI.</em> Every number real or honestly hatched <span class="num" style="font-size:10px">no-data</span>. F1 F2 F4 F6 + signature engine.</div>
+  </div>
+
+  <!-- P5 F3 showcase -->
+  <div class="cv">
+    <div class="cv-tag"><b>PASS 5</b><span>F3 showcase</span></div>
+    <div class="m-head"><span class="m-gauge on"></span><span class="m-dots"><i class="r"></i><i></i><i class="y"></i><i class="y"></i><i class="r"></i><i class="r"></i><i></i><i class="h"></i><i class="y"></i><i class="y"></i><i></i><i></i></span></div>
+    <div class="m-hero">
+      <svg viewBox="0 0 100 44" preserveAspectRatio="none">
+        <polyline points="2,38 20,34 38,26 52,10 62,20 78,30 98,36" fill="none" stroke="#C8933A" stroke-width="1.6"/>
+        <polyline points="2,40 30,32 60,22 98,8" fill="none" stroke="#7DD3FC" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <div class="m-board">
+      <div class="m-row"><span class="m-lamp r"></span><span class="m-bar"><i class="rd" style="width:72%"></i></span></div>
+      <div class="m-row"><span class="m-lamp y"></span><span class="m-bar"><i class="a" style="width:48%"></i></span></div>
+      <div class="m-row" style="outline:1px solid var(--amber);outline-offset:1.5px;border-radius:3px"><span class="m-lamp r"></span><span class="m-bar"><i class="rd" style="width:64%"></i></span></div>
+      <div class="m-row"><span class="m-lamp g"></span><span class="m-bar"><i class="c" style="width:62%"></i></span></div>
+    </div>
+    <div class="m-duo"><span class="m-radar"></span><span class="m-thermo"><i style="height:58%"></i></span></div>
+    <div class="m-strip"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="cv-note"><em>The judges' row.</em> Registry, scan→verify fan-out, two-stage CMI, revenue-quality waterfall.</div>
+  </div>
+
+  <!-- P7 polish -->
+  <div class="cv">
+    <div class="cv-tag"><b>PASS 7</b><span>fine brushes</span></div>
+    <div class="m-head"><span class="m-gauge on" style="border-color:var(--red)"></span><span class="m-dots"><i class="r"></i><i></i><i class="y"></i><i class="y"></i><i class="r"></i><i class="r"></i><i></i><i class="h"></i><i class="y"></i><i class="y"></i><i></i><i></i></span></div>
+    <div class="m-hero" style="border-style:solid;border-color:var(--border2)">
+      <svg viewBox="0 0 100 44" preserveAspectRatio="none">
+        <polyline points="2,38 20,34 38,26 52,10 62,20 78,30 98,36" fill="none" stroke="#C8933A" stroke-width="1.6"/>
+        <polyline points="2,40 30,32 60,22 98,8" fill="none" stroke="#7DD3FC" stroke-width="1.8"/>
+        <path d="M37,20 l3,5 l-6,0 z" fill="#C8933A"/><path d="M51,4 l3,5 l-6,0 z" fill="#C8933A"/>
+        <path d="M58,16 l3,5 l-6,0 z" fill="#E5484D"/>
+        <circle cx="98" cy="8" r="2.4" fill="#7DD3FC"/>
+      </svg>
+    </div>
+    <div class="m-board">
+      <div class="m-row"><span class="m-lamp r"></span><span class="m-bar"><i class="rd" style="width:72%"></i></span></div>
+      <div class="m-row"><span class="m-lamp y"></span><span class="m-bar"><i class="a" style="width:48%"></i></span></div>
+      <div class="m-row"><span class="m-lamp r"></span><span class="m-bar"><i class="rd" style="width:64%"></i></span></div>
+      <div class="m-row"><span class="m-lamp g"></span><span class="m-bar"><i class="c" style="width:62%"></i></span></div>
+    </div>
+    <div class="m-duo">
+      <span class="m-radar" style="border-style:solid">
+        <svg viewBox="0 0 60 26" preserveAspectRatio="none">
+          <polygon points="30,2 52,10 44,23 16,23 8,10" fill="none" stroke="#4B5563" stroke-width="1" stroke-dasharray="2 2"/>
+          <polygon points="30,5 46,11 40,20 20,20 12,12" fill="#7DD3FC" fill-opacity=".22" stroke="#7DD3FC" stroke-width="1.2"/>
+        </svg>
+      </span>
+      <span class="m-thermo" style="border-style:solid"><i style="height:58%"></i></span>
+    </div>
+    <div class="m-strip"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="cv-note"><em>Pins, gauge, radar, choreography.</em> Done last, against the deployed API (Pass 6).</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="dot dot-n"></span>not fired / fake</span>
+  <span><span class="dot dot-r"></span>fired (strong ≥ 1)</span>
+  <span><span class="dot dot-y"></span>partial (weak cluster)</span>
+  <span><span class="dot dot-h"></span>no-data, shown honestly</span>
+  <span style="color:var(--amber)">— 1999 era</span>
+  <span style="color:var(--cyan)">— today, live</span>
+</div>
+
+<!-- ================= PASS CARDS ================= -->
+<h2><span class="k">SEQUENCE</span> The nine passes</h2>
+<p class="h2sub">Each pass ends with a manual gate <i>you</i> run. Green = already verified live. Commit lands only after the gate is green.</p>
+
+<div class="passes">
+
+  <div class="pass done" id="pass-0">
+    <div class="p-num"><b>0</b><s>SETUP</s></div>
+    <div class="p-main">
+      <div class="p-title">Keys &amp; ground truth</div>
+      <div class="p-layer">Layer proven: both data planes + local LLM</div>
+      <div class="p-desc">Verified <b>Pattern A</b> (Research + <span class="num" style="font-size:12px">output_schema</span> + sec.gov lock → typed JSON, 28s), <b>Pattern B</b> (Finance Research → 4 clean FINDING blocks, 71s), balance endpoint, yfinance both eras, FMP constituents + fed funds, Haiku.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE — PASSED</h4>
+      <ul>
+        <li>Typed JSON, nulls not <span class="num">""</span>, 4/4 sec.gov sources</li>
+        <li>FINDING blocks + [[n]] markers parse by regex</li>
+        <li>Balance decremented as expected</li>
+        <li>Real prices, both eras</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-done">DONE</span><div class="p-meta"><b>~$0.35</b> spent<br>2 commits</div></div>
+  </div>
+
+  <div class="pass next" id="pass-1">
+    <div class="p-num"><b>1</b><s>SKELETON</s></div>
+    <div class="p-main">
+      <div class="p-title">The rough full picture — everything exists, everything fake</div>
+      <div class="p-layer">Layer swapped: nothing → the entire product shape</div>
+      <div class="p-desc">Monorepo + <b><span class="num" style="font-size:12px">schema.py</span> contract</b> + config YAMLs + fixtures. FastAPI with all 5 endpoints (in-memory). A <b>fake pipeline</b>: 15s asyncio task emitting the full trace-event vocabulary, perturbing scores. SPA with all six sections as rough blocks, real polling loop (2s/15s), evidence drawer. <b>MOCK=1 switch from day one.</b> Needs no external keys.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE</h4>
+      <ul>
+        <li>All 6 sections render from fixtures, nothing blank</li>
+        <li>Rescore → page notices in 2s, values drift over 15s</li>
+        <li>Concurrent rescore → <span class="num">409</span></li>
+        <li>All 12 drawers open; hatched row shows honest tooltip</li>
+        <li><span class="num">/events?since=</span> cursor works</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-next">NEXT</span><div class="p-meta"><b>$0</b> API<br>biggest pass</div></div>
+  </div>
+
+  <div class="pass" id="pass-2">
+    <div class="p-num"><b>2</b><s>BONES</s></div>
+    <div class="p-main">
+      <div class="p-title">Postgres + pure-quant factors</div>
+      <div class="p-layer q">Layer swapped: in-memory → real DB · quant numbers fake → real</div>
+      <div class="p-desc"><span class="num" style="font-size:12px">schema.sql</span> (7 tables, DDL already written in the handoff), asyncpg pool, probe abstraction + orchestrator lifecycle. <b>F5 breadth + F1 rates go real</b> — FMP/yfinance, zero LLM. Both-era benchmark series served in <span class="num" style="font-size:12px">/state</span>.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE</h4>
+      <ul>
+        <li>Quant strip matches Google Finance ±rounding</li>
+        <li>Two runs, identical F5 score — determinism</li>
+        <li><span class="num">/state?run_id=</span> replays an old run</li>
+        <li>Kill FMP key → stale-not-blank chip</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-wait">QUEUED</span><div class="p-meta"><b>$0</b> API<br>docker pg16</div></div>
+  </div>
+
+  <div class="pass" id="pass-3">
+    <div class="p-num"><b>3</b><s>SLICE</s></div>
+    <div class="p-main">
+      <div class="p-title">First real agent, end to end</div>
+      <div class="p-layer q">Layer swapped: one probe fake → live (You.com F2 binaries + one Pattern B)</div>
+      <div class="p-desc">You.com client with cost accounting + <span class="num" style="font-size:12px">probe_cache</span>. Signature engine v1: config re-maps event→strength, <b>strong≥1→FIRED / weak≥K→PARTIAL</b>. Shared <b><span class="num" style="font-size:12px">extract()</span></b> chain (regex → Haiku fallback → Pydantic) — written once, reused by every Pattern B call site.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE</h4>
+      <ul>
+        <li>Click lamp → real quotes, 3 URLs manually verified</li>
+        <li>Recompute the lamp by hand from S/W counters</li>
+        <li>Re-run within TTL → <span class="num">cache_hit</span>, $0</li>
+        <li>Mangled FINDING block → confidence=low, not a crash</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-wait">QUEUED</span><div class="p-meta"><b>~$0.20</b>/test<br>vertical slice</div></div>
+  </div>
+
+  <div class="pass" id="pass-4">
+    <div class="p-num"><b>4</b><s>FACTORS</s></div>
+    <div class="p-main">
+      <div class="p-title">All factors rough + real BTI</div>
+      <div class="p-layer q">Layer swapped: F1 F2 F4 F6 fake → live · BTI computed for real</div>
+      <div class="p-desc">Fed-rhetoric scorer, guidance tone ×8 tickers, GPU spot, insider narrative, hype classifier — all through the two patterns + Haiku rubrics. <b>12 signature configs researched once and hardcoded with citations.</b> Timeouts, semaphores, budget-drop preflight.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE</h4>
+      <ul>
+        <li>Full run &lt; ~4 min, cost matches balance delta</li>
+        <li>Every number real or hatched — zero fakes</li>
+        <li>Unplug a key mid-run → factor stale, run completes</li>
+        <li>Spot-check 5 citations across factors</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-wait">QUEUED</span><div class="p-meta"><b>~$0.6–2.2</b>/run<br>fan-out</div></div>
+  </div>
+
+  <div class="pass" id="pass-5">
+    <div class="p-num"><b>5</b><s>F3 ★</s></div>
+    <div class="p-main">
+      <div class="p-title">F3 circularity showcase</div>
+      <div class="p-layer q">Layer swapped: F3 fake → the genuinely agentic factor</div>
+      <div class="p-desc">Registry (~10–15 cited edges), Stage-1 weekly + Stage-2 monthly batteries, <b>scan → verify fan-out</b> (the trace moment judges watch), two-stage CMI, revenue-quality waterfall per lab. <b>Cold-start baseline run is mandatory the night before demo</b> — no baseline, no deltas.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE</h4>
+      <ul>
+        <li>Trace shows 1 scan → N parallel verifies</li>
+        <li>Announced-only edge provably excluded from CR</li>
+        <li>CMI computed from two windows, never one</li>
+        <li>Waterfall: every bar has a citation chip</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-wait">QUEUED</span><div class="p-meta"><b>~$0.7</b>/cycle<br>+ cold-start</div></div>
+  </div>
+
+  <div class="pass" id="pass-6">
+    <div class="p-num"><b>6</b><s>DEPLOY</s></div>
+    <div class="p-main">
+      <div class="p-title">Render: 2 deployables + cron</div>
+      <div class="p-layer q">Layer swapped: localhost → public URL</div>
+      <div class="p-desc">Render Postgres + <b>paid</b> web service (free tier spins down after 15 min — the handoff's explicit demo-day trap) + static SPA + 6h cron. <span class="num" style="font-size:12px">config_version</span> = git SHA. Deployed <i>before</i> UI polish so Pass 7 works against production.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE</h4>
+      <ul>
+        <li>Loads on your phone, polling works</li>
+        <li>curl rescore with admin key → live on public page</li>
+        <li>Wrong key → 401 · concurrent → 409</li>
+        <li>20 min idle → still instant reload</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-wait">QUEUED</span><div class="p-meta">paid instance<br>+ domain</div></div>
+  </div>
+
+  <div class="pass" id="pass-7">
+    <div class="p-num"><b>7</b><s>DETAIL</s></div>
+    <div class="p-main">
+      <div class="p-title">UI fine brushes</div>
+      <div class="p-layer q">Layer swapped: rough blocks → the spec'd picture</div>
+      <div class="p-desc">Bespoke SVG gauge, <b>dual-timeline hero chart</b> (hardest — phase-aligned 1996-01→2001-12 vs 2023→now, signature pins + ghost slots), radar with red breach fill, thermometer, and the <b>rescore choreography</b> — a client-side diff of consecutive <span class="num" style="font-size:12px">/state</span> payloads. Idle = perfectly still; motion only on state change.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE</h4>
+      <ul>
+        <li><b>1200×630 screenshot of A+B self-explains</b> (= OG image)</li>
+        <li>Live rescore plays full choreography once, then stillness</li>
+        <li>Rates toggle: no layout shift</li>
+        <li>Every number has a working source chip</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-wait">QUEUED</span><div class="p-meta">budget most<br>for hero chart</div></div>
+  </div>
+
+  <div class="pass" id="pass-8">
+    <div class="p-num"><b>8</b><s>PROOF</s></div>
+    <div class="p-main">
+      <div class="p-title">Eval, demo insurance, Forge</div>
+      <div class="p-layer q">Layer swapped: "trust us" → measured reproducibility</div>
+      <div class="p-desc">3× runs → variance table (target σ&lt;5), citation-validity spot-check, extract-chain failure rate — four SQL queries into the <span class="num" style="font-size:12px">/agents</span> README (the artifact the You.com judge reads). Replay URL + 60s recording as demo insurance. <b>Opsera Forge time-boxed to 45 min</b> for the $500 side prize.</div>
+    </div>
+    <div class="p-test">
+      <h4>GATE</h4>
+      <ul>
+        <li>σ&lt;5 or the outlier is explained on the slide</li>
+        <li>Kill the backend → replay + recording still demo</li>
+        <li>Cold 3-min run-through of the pitch path works</li>
+      </ul>
+    </div>
+    <div class="p-side"><span class="badge b-wait">QUEUED</span><div class="p-meta">last 2h<br>locked</div></div>
+  </div>
+</div>
+
+<div class="cut"><b>CUT LINE</b> — if time collapses: ship F1 + F3 + F5 + F6 with 8 signatures. F2/F4 flip to hatched <span class="num" style="font-size:12.5px">no-data</span> rows, which the UI renders honestly <i>by design</i> — cutting them costs zero structural work. That's why the honesty states are built in Pass 1, not bolted on.</div>
+
+<!-- ================= ARCHITECTURE ================= -->
+<h2><span class="k">SHAPE</span> What gets built, and which pass makes it real</h2>
+<p class="h2sub">Two deployables + one cron. No queue, no Redis, no SSE — Postgres <i>is</i> the event log, the frontend just polls. Badges show the pass where each piece turns real.</p>
+
+<div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  SPA["Static SPA — public<br/><i>reads cached state only</i><br/>⟦P1 rough · P7 detail⟧"]
+  API["FastAPI on Render<br/>/state · /events · /evidence · /rescore🔑<br/>⟦P1 fake · P2 real DB⟧"]
+  ORCH["Orchestrator<br/>preflight → fan-out F1..F6 → reduce<br/>⟦P2 shape · P3–P5 live⟧"]
+  YOU["You.com APIs<br/>Search · Contents · Research · Finance<br/>⟦P0 verified ✓⟧"]
+  MKT["FMP + yfinance<br/>prices · rates · breadth<br/>⟦P0 verified ✓⟧"]
+  DB[("Postgres<br/>runs · events · evidence ·<br/>signatures · registry · cache<br/>⟦P2⟧")]
+  CRON["Render Cron 6h<br/>⟦P6⟧"]
+  SPA -- "poll 2s / 15s" --> API
+  CRON --> API
+  API -- "asyncio task + Lock" --> ORCH
+  ORCH --> YOU
+  ORCH --> MKT
+  ORCH -- "writes as each probe lands" --> DB
+  API -- reads --> DB
+</pre>
+</div>
+
+<!-- ================= PASS 0 RECEIPTS ================= -->
+<h2><span class="k">VERIFIED</span> Pass 0 receipts — real output, real spend</h2>
+<p class="h2sub">Everything below came back from live calls yesterday, not from docs.</p>
+
+<table>
+  <tr><th>PLANE</th><th>RESULT</th><th>PROOF</th><th></th></tr>
+  <tr>
+    <td>Pattern A<br><span style="color:var(--faint);font-size:11px">Research + schema + sec.gov</span></td>
+    <td>Typed JSON in <span class="num">28s</span>, one finding per metric, <span class="num">null</span> for unknowns, 4/4 sources domain-locked</td>
+    <td><q>…a cumulative increase of approximately $7.8 billion in committed spend…</q> — CoreWeave S-1/A, sec.gov</td>
+    <td class="ok">PASS</td>
+  </tr>
+  <tr>
+    <td>Pattern B<br><span style="color:var(--faint);font-size:11px">Finance Research + FINDING</span></td>
+    <td><span class="num">4</span> clean FINDING blocks in <span class="num">71s</span>, zero prose leakage — regex parses without the Haiku fallback</td>
+    <td><q>…approximately 67% of our revenue from our top customer, Microsoft…</q> · $9.33B GPU-secured DDTL</td>
+    <td class="ok">PASS</td>
+  </tr>
+  <tr>
+    <td>Balance API</td>
+    <td><span class="num">GET /v1/billing/account_balance</span> → <b class="num" style="color:var(--txt)">$98.74</b> of $100</td>
+    <td>decremented exactly per call pricing</td>
+    <td class="ok">PASS</td>
+  </tr>
+  <tr>
+    <td>Quant plane</td>
+    <td>^IXIC 1996–2001 (<span class="num">1,513</span> rows) + 2023–now (<span class="num">891</span> rows) · ^TNX <span class="num">4.70%</span> · FMP <span class="num">503</span> constituents · fed funds <span class="num">3.63%</span></td>
+    <td>yfinance + FMP, no key friction</td>
+    <td class="ok">PASS</td>
+  </tr>
+  <tr>
+    <td>Local LLM</td>
+    <td>Haiku <span class="num">200 OK</span> — after fixing env shadowing (<span class="num">override=True</span>)</td>
+    <td>a stale shell export was silently hiding three valid keys</td>
+    <td class="ok">PASS</td>
+  </tr>
+</table>
+
+<!-- ================= RISKS ================= -->
+<h2><span class="k">RISKS</span> Watch-items found in live output</h2>
+<p class="h2sub">Not hypotheticals — each one showed up during Pass 0 or is an explicit trap in the handoff.</p>
+
+<div class="risks">
+  <div class="risk">
+    <b>Crawl errors masquerade as evidence</b>
+    Pattern A returned a finding whose "quote" was literally <q>could not be accessed due to a 404-style error</q>.
+    <div class="fix">Pass 3's validation rejects quotes that look like error text before they become evidence.</div>
+  </div>
+  <div class="risk">
+    <b>Pattern B's provenance is weaker</b>
+    Its numbers were the richest (67% Microsoft, $9.33B DDTL) but its one source was a wiki mirror, not sec.gov.
+    <div class="fix">Pattern A (domain-locked) for anything <i>scored</i>; Pattern B for discovery, tone, aggregates — exactly the handoff's split.</div>
+  </div>
+  <div class="risk hard">
+    <b>Render free tier is a demo-day trap</b>
+    Free web services spin down after 15 idle minutes and can't attach a disk.
+    <div class="fix">Paid instance in Pass 6, verified with the "20 min idle → instant reload" gate.</div>
+  </div>
+  <div class="risk hard">
+    <b>No cold-start baseline = no story</b>
+    Every F3 delta needs a window-0 run. Skip it and demo day shows counts with no direction.
+    <div class="fix">Cold-start battery is a hard gate inside Pass 5, run the night before.</div>
+  </div>
+  <div class="risk">
+    <b>FMP free-tier rate limits vs %&gt;200dma</b>
+    That metric wants price history for ~500 constituents; the free tier caps daily calls.
+    <div class="fix">Use FMP batch endpoints in Pass 2; if capped, compute on a sampled subset and label it.</div>
+  </div>
+  <div class="risk">
+    <b>Budget is finite: $98.74</b>
+    Full rescore ≈ $0.60–2.20. UI development could silently burn it.
+    <div class="fix">MOCK=1 for all UI work; balance polled every run; preflight drops priority-3 probes under pressure.</div>
+  </div>
+</div>
+
+<!-- ================= RULES ================= -->
+<h2><span class="k">LAWS</span> Three honesty rules, enforced every pass</h2>
+<p class="h2sub">These are product features, not engineering hygiene — each has its own test in every gate.</p>
+
+<div class="rules">
+  <div class="rule"><b>Stale, never blank</b><p>A failed probe keeps the last good score, dimmed, with a "stale · timestamp" chip. The page never shows a hole.</p></div>
+  <div class="rule"><b>Disagree, never average</b><p>Conflicting evidence shows both values with a ⚠ banner and is excluded from the score. No silent midpoints.</p></div>
+  <div class="rule"><b>No-data, never faked</b><p>Unmeasurable signatures render hatched with a tooltip naming exactly what's missing. Honesty is the pitch.</p></div>
+</div>
+
+<p style="margin-top:48px;color:var(--faint);font-size:12.5px;border-top:1px solid var(--border);padding-top:16px">
+  LLMs gather evidence; scores are computed — never generated. · Commit after every green gate. ·
+  <span class="num">hackathon_handoff/HANDOVER.md</span> governs on any conflict.
+</p>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#0B0E14',
+      primaryColor: '#151B27',
+      primaryTextColor: '#E6EDF3',
+      primaryBorderColor: '#2A3342',
+      lineColor: '#5A6478',
+      secondaryColor: '#11151E',
+      tertiaryColor: '#11151E',
+      fontFamily: '-apple-system, Inter, Segoe UI, sans-serif',
+      fontSize: '13px'
+    },
+    flowchart: { curve: 'basis', htmlLabels: true }
+  });
+</script>
+</body>
+</html>

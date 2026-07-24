@@ -64,12 +64,15 @@ async def run_fake_pipeline() -> str:
     total_cost = 0.0
 
     async def run_factor(f: str) -> None:
+        # Paced so a full fake run lasts ~20-25s: long enough that the SPA's 15s
+        # idle poll always lands mid-run and flips to 2s cadence (real runs in
+        # Pass 4 take minutes, so this is also the more honest rehearsal).
         nonlocal total_cost
-        await asyncio.sleep(rng.uniform(0.2, 1.5))  # stagger starts
+        await asyncio.sleep(rng.uniform(0.5, 4.0))  # stagger starts
         _emit(run_id, "agent.started", factor=f)
-        n_probes = rng.randint(1, 3)
+        n_probes = rng.randint(2, 4)
         for i in range(n_probes):
-            elapsed = rng.uniform(0.6, 2.2)
+            elapsed = rng.uniform(2.0, 5.0)
             await asyncio.sleep(elapsed)
             cost = FAKE_COST[f]
             total_cost += cost
