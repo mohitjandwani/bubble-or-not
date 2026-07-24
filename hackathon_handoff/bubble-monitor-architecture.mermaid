@@ -1,0 +1,44 @@
+flowchart LR
+    subgraph PUBLIC["Public"]
+        SPA["Static Frontend SPA<br/>radar · 1999 clock · trigger board<br/><i>polls cached state only</i>"]
+    end
+
+    subgraph BACKEND["FastAPI Backend — deployable #1 (Render)"]
+        STATE["GET /state[?run_id]<br/>scores · signatures · status"]
+        EV["GET /events?since=&lt;id&gt;<br/>trace cursor (Screen 2)"]
+        EVID["GET /evidence/:factor<br/>typed objects + provenance"]
+        RESCORE["POST /rescore<br/><b>admin key only</b>"]
+    end
+
+    subgraph PIPE["Agent Pipeline — in-process async task"]
+        ORCH["Orchestrator<br/>preflight (balance · cadence · TTL · budget)<br/>fan-out · deterministic scoring"]
+        F1["F1 Fed rhetoric"]
+        F2["F2 Bellwethers"]
+        F3["F3 Circularity ★<br/><i>scan → verify fan-out</i>"]
+        F4["F4 Insiders"]
+        F5["F5 Breadth (pure quant)"]
+        F6["F6 Narrative temp"]
+    end
+
+    subgraph EXT["External data"]
+        YOU["You.com APIs<br/>Search+livecrawl · Contents<br/>Research+schema→sec.gov<br/>Finance Research"]
+        MKT["FMP · yfinance<br/>prices · rates · breadth<br/>source-of-truth numbers"]
+    end
+
+    DB[("Render Postgres<br/>runs · run_events · evidence<br/>factor_results · signatures<br/>registry_edges · probe_cache")]
+    CRON["Render Cron — every 6h"]
+    CFG["/config (git)<br/>weights · thresholds · prompts<br/><i>Forge work-order gated</i>"]
+
+    SPA -- "poll 2s / 15s" --> STATE
+    SPA -.-> EV
+    SPA -.-> EVID
+    CRON --> RESCORE
+    RESCORE -- "asyncio task (Lock)" --> ORCH
+    CFG -- "config_version" --> ORCH
+    ORCH --> F1 & F2 & F3 & F4 & F5 & F6
+    F1 & F2 & F3 & F4 & F6 --> YOU
+    F1 & F5 --> MKT
+    ORCH -- "writes as each probe lands" --> DB
+    STATE -- "read" --> DB
+    EV -- "read" --> DB
+    EVID -- "read" --> DB
