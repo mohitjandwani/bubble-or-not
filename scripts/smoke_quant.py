@@ -9,7 +9,7 @@ from pathlib import Path
 import yfinance as yf
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
 
 def show(label, df):

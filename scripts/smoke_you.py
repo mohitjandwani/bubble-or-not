@@ -18,7 +18,9 @@ from pathlib import Path
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+# override=True: .env is authoritative — the user's shell exports a stale
+# ANTHROPIC_API_KEY that must not shadow it.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 KEY = os.environ["YOU_API_KEY"]
 HEADERS = {"X-API-Key": KEY}
 
