@@ -171,3 +171,35 @@ export interface RescoreResponse {
   run_id: string;
   status: RunStatus;
 }
+
+/** Screen 2 ("Engine") — the You.com API-usage exhibit. */
+export type ProbePattern = "A" | "B" | "SEARCH" | "QUANT";
+
+export interface EngineProbe {
+  probe_id: string;
+  factor: Factor;
+  pattern: ProbePattern;
+  endpoint: string;
+  effort?: string | null;
+  params: Record<string, unknown>;
+  query?: string | null;
+  output_schema?: string | null;
+  local_llm?: string | null;
+  cadence: string;
+  cost_est_usd: number;
+  why_youcom: string;
+}
+
+export interface ProbeStat {
+  last_cost?: number | null;
+  last_elapsed_ms?: number | null;
+  cache_hit: boolean;
+  last_ts?: string | null;
+}
+
+export interface EnginePayload {
+  probes: EngineProbe[];
+  balance_usd?: number | null;
+  probe_stats: Record<string, ProbeStat>;
+  pricing_note: string;
+}

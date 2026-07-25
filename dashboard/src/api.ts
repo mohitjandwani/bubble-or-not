@@ -1,4 +1,4 @@
-import type { Evidence, Factor, RunEvent, StatePayload } from "./types";
+import type { EnginePayload, Evidence, Factor, RunEvent, StatePayload } from "./types";
 
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
@@ -8,6 +8,10 @@ async function getJson<T>(url: string): Promise<T> {
 
 export function fetchState(): Promise<StatePayload> {
   return getJson<StatePayload>("/state");
+}
+
+export function fetchEngine(): Promise<EnginePayload> {
+  return getJson<EnginePayload>("/engine");
 }
 
 export function fetchEvents(sinceId: number | null): Promise<RunEvent[]> {

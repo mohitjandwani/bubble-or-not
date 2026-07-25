@@ -12,6 +12,7 @@ export default defineConfig({
       "/events": "http://localhost:8000",
       "/evidence": "http://localhost:8000",
       "/rescore": "http://localhost:8000",
+      "/engine": "http://localhost:8000",
     },
   },
 });
