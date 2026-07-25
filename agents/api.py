@@ -87,6 +87,33 @@ async def rescore(x_admin_key: str = Header(default="")):
     return RescoreResponse(run_id="pending", status="running")
 
 
+@app.get("/engine")
+async def engine():
+    """Screen 2 payload: the literal You.com usage map + live balance +
+    per-probe last-run stats from the trace."""
+    from agents import youcom
+    from agents.registry import PROBE_REGISTRY
+
+    stats: dict[str, dict] = {}
+    pg = getattr(store_mod.STORE, "pool", None)
+    if pg is not None:
+        async with pg.acquire() as con:
+            rows = await con.fetch("""
+                SELECT DISTINCT ON (probe_id) probe_id, cost, elapsed_ms, cache_hit,
+                       ts, endpoint
+                FROM run_events WHERE event_type='agent.tool_call' AND probe_id IS NOT NULL
+                ORDER BY probe_id, id DESC""")
+        for r in rows:
+            stats[r["probe_id"]] = {
+                "last_cost": float(r["cost"]) if r["cost"] is not None else None,
+                "last_elapsed_ms": r["elapsed_ms"], "cache_hit": r["cache_hit"],
+                "last_ts": r["ts"].isoformat()}
+    bal = await youcom.balance()
+    return {"probes": PROBE_REGISTRY, "balance_usd": bal, "probe_stats": stats,
+            "pricing_note": "search $0.005 · research std $0.05 / deep $0.10 · "
+                            "finance_research deep $0.11 · contents $0.001/pg"}
+
+
 @app.get("/healthz")
 async def healthz():
     return {"ok": True, "store": type(store_mod.STORE).__name__}

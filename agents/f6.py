@@ -43,6 +43,9 @@ async def run_narrative_probe(store, run_id: str, ttl_hours: float = 12.0) -> di
     articles = [{"url": i.get("url"), "text":
                  (i.get("markdown") or " ".join(i.get("snippets") or []))[:1200]}
                 for i in items if i.get("url")]
+    # thin/empty texts make the density denominator collapse (5 flags out of 10
+    # classifiable = 0.50 "density" — small-sample noise, not signal)
+    articles = [a for a in articles if len(a["text"]) >= 200]
 
     async def classify(batch: list[dict]):
         corpus = "\n\n".join(f"ARTICLE {j+1} URL: {a['url']}\n{a['text']}"

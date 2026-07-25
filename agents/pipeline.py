@@ -449,7 +449,9 @@ async def run_pipeline() -> str:
         rows = narrative_evidence(run_id, r)
         await store_mod.STORE.put_evidence(run_id, rows)
         f6 = _factor(state, "f6")
-        f6.score, f6.state, f6.cost, f6.as_of = r["score"], "ok", r["cost"], _now()
+        f6.score, f6.cost, f6.as_of = r["score"], r["cost"], _now()
+        # density over a thin sample is noise — say so instead of shouting 100
+        f6.state = "ok" if r["n_articles"] >= 20 else "low_coverage"
         f6.sub_metrics = {"hype_density": r["density"], "baseline_1999": r["baseline_1999"],
                           "articles_sampled": r["n_articles"]}
         state.thermometer = {"density": r["density"], "baseline_1999": r["baseline_1999"],
