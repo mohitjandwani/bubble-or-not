@@ -222,6 +222,7 @@ state = StatePayload(
     factors=factors, signatures=signatures, quant_strip=quant_strip, hero=hero,
     thermometer={
         "density": 0.31, "baseline_1999": 0.47, "score": 66.0,
+        "baseline_citation": "https://en.wikipedia.org/wiki/Dot-com_bubble",
         "phrases": [
             {"text": "this time is different", "count": 14, "url": "https://example.com/a"},
             {"text": "new paradigm", "count": 9, "url": "https://example.com/b"},
