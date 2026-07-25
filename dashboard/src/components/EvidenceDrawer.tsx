@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { fetchEvidenceWithFallback } from "../api";
-import type { Evidence, SignatureState } from "../types";
+import type { Evidence, F3Exhibit, SignatureState } from "../types";
 import { confidenceColor } from "../constants";
+import WaterfallChart from "./WaterfallChart";
+import EdgesRegistry from "./EdgesRegistry";
 
 function provenanceLine(p: Record<string, unknown>): string {
   const parts: string[] = [];
@@ -13,7 +15,7 @@ function provenanceLine(p: Record<string, unknown>): string {
   return parts.join(" · ");
 }
 
-export default function EvidenceDrawer({ signature }: { signature: SignatureState }) {
+export default function EvidenceDrawer({ signature, f3 }: { signature: SignatureState; f3?: F3Exhibit }) {
   const [rows, setRows] = useState<Evidence[] | null>(null);
 
   useEffect(() => {
@@ -98,6 +100,30 @@ export default function EvidenceDrawer({ signature }: { signature: SignatureStat
           {other.map((r) => renderRow(r, true))}
         </tbody>
       </table>
+
+      {f3 && (Object.keys(f3.waterfalls).length > 0 || f3.edges.length > 0) && (
+        <div className="f3-exhibit">
+          {Object.keys(f3.waterfalls).length > 0 && (
+            <>
+              <div className="f3-exhibit-title">
+                Revenue quality waterfall
+                {f3.circularity_ratio_pct != null && (
+                  <span className="tnum f3-exhibit-sub"> · circularity ratio {f3.circularity_ratio_pct.toFixed(1)}%</span>
+                )}
+              </div>
+              <WaterfallChart waterfalls={f3.waterfalls} revenueQuality={f3.revenue_quality} />
+            </>
+          )}
+          {f3.edges.length > 0 && (
+            <>
+              <div className="f3-exhibit-title" style={{ marginTop: 14 }}>
+                Financing registry
+              </div>
+              <EdgesRegistry edges={f3.edges} />
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -122,6 +122,79 @@ a {
   }
 }
 
+/* ---------- shared hover tooltips ---------- */
+.tip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.tip-wrap[data-tip]:hover::after,
+.tip-wrap[data-tip]:focus-within::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 7px;
+  background: #1a2030;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+/* SVG-chart tooltips, positioned in JS (percent-x / pixel-y) inside a
+   `position: relative` wrapper — used where a pure-CSS ::after can't track
+   a moving mouse position (crosshair, radar vertices). */
+.hover-tip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  margin-top: -10px;
+  background: #1a2030;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 60;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+.hover-tip .tip-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.hover-tip .tip-amber {
+  color: var(--amber);
+}
+
+.hover-tip .tip-cyan {
+  color: var(--cyan);
+}
+
+/* ---------- crossfade ---------- */
+.crossfade {
+  transition: opacity 250ms ease;
+}
+
+.crossfade.cf-out {
+  opacity: 0;
+}
+
+.crossfade.cf-in {
+  opacity: 1;
+}
+
 /* ---------- change flash ---------- */
 @keyframes flash {
   0% {
@@ -219,6 +292,16 @@ section.block {
   cursor: pointer;
   border: none;
   padding: 0;
+  transition: background-color 250ms ease, border-color 250ms ease, transform 150ms ease;
+}
+
+.sig-dot:hover {
+  transform: scale(1.25);
+}
+
+.sig-dot:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
 }
 
 .sig-dot.watch {
@@ -248,6 +331,31 @@ section.block {
   padding: 16px;
 }
 
+.hero-legend {
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dim);
+  z-index: 2;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
 .hero-toggle {
   position: absolute;
   top: 14px;
@@ -256,32 +364,64 @@ section.block {
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
-  opacity: 0.45;
-  cursor: not-allowed;
   font-size: 11px;
+  z-index: 2;
 }
 
-.hero-toggle span {
-  padding: 4px 10px;
-}
-
-.hero-toggle span:first-child {
+.hero-toggle button {
+  padding: 4px 12px;
   background: var(--panel);
+  border: none;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 11px;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.hero-toggle button:first-child {
   border-right: 1px solid var(--border);
 }
 
-.era-caption {
-  position: absolute;
-  font-size: 11px;
-  font-weight: 600;
+.hero-toggle button:hover {
+  color: var(--text);
 }
 
-.era-caption.era-1999 {
-  color: var(--amber);
-}
-
-.era-caption.era-now {
+.hero-toggle button.active {
+  background: var(--border);
   color: var(--cyan);
+}
+
+.hero-skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--panel) 25%, var(--border) 50%, var(--panel) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.live-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: live-ping 1.8s ease-out infinite;
+}
+
+@keyframes live-ping {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
 }
 
 /* ---------- Section C: signature board ---------- */
@@ -348,6 +488,43 @@ section.block {
   border-radius: 999px;
 }
 
+/* ---------- F3 group-header CMI exhibit ---------- */
+.factor-extra {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 14px 10px 14px;
+  flex-wrap: wrap;
+}
+
+.cmi-spark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cmi-spark-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cmi-spark-label {
+  font-size: 10px;
+  color: var(--dim);
+  width: 32px;
+}
+
+.canary-chip {
+  font-size: 11px;
+  color: var(--red);
+  border: 1px solid var(--red);
+  background: rgba(229, 72, 77, 0.1);
+  border-radius: 999px;
+  padding: 2px 9px;
+  cursor: help;
+}
+
 .sig-row {
   display: flex;
   align-items: center;
@@ -389,6 +566,24 @@ section.block {
 .lamp.no_data {
   background-image: repeating-linear-gradient(45deg, var(--dim) 0, var(--dim) 2px, transparent 2px, transparent 5px);
   border: 1px solid var(--border);
+}
+
+.lamp-pulse {
+  animation: lamp-pulse 650ms ease;
+}
+
+@keyframes lamp-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(230, 237, 243, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(230, 237, 243, 0);
+    transform: scale(1.2);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(230, 237, 243, 0);
+    transform: scale(1);
+  }
 }
 
 .sig-name {

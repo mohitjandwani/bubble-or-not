@@ -8,6 +8,7 @@ signatures:
   precedent_1999: The Fed began a 1999-06 tightening cycle, lifting rates six times by 2000-05 from 4.75%
     to 6.50%.
   precedent_citation_url: https://www.federalreserve.gov/monetarypolicy/files/FOMC19990630meeting.pdf
+  pin_date_1999: '1999-06-30'
 - id: sig-f1-rhetoric
   factor: f1
   name: Fed rhetoric turns hawkish
@@ -17,6 +18,7 @@ signatures:
   precedent_1999: In 2000-02, Greenspan told Congress the economy had excess demand and booming stock
     prices were a culprit.
   precedent_citation_url: https://www.richmondfed.org/publications/research/econ_focus/2023/q1_federal_reserve
+  pin_date_1999: '2000-02-17'
 - id: sig-f2-revisions
   factor: f2
   name: Estimate revisions turn negative
@@ -26,6 +28,7 @@ signatures:
   precedent_1999: Intel warned on 2000-09-22 that Q3 sales would miss forecasts, signaling a broad tech
     earnings slowdown.
   precedent_citation_url: https://www.latimes.com/archives/la-xpm-2000-sep-22-fi-24926-story.html
+  pin_date_1999: '2000-09-22'
 - id: sig-f2-guidance
   factor: f2
   name: Bellwether guidance cracks
@@ -34,6 +37,7 @@ signatures:
   threshold_text: 'fires on any strong event: guidance cut/withdrawn or reported miss vs own guidance'
   precedent_1999: Intel cut its 3Q sales outlook in 2000-09, and the news sparked a global tech sell-off.
   precedent_citation_url: https://www.nytimes.com/2000/09/23/news/intel-warning-sparks-world-selloff.html
+  pin_date_1999: '2000-09-22'
 - id: sig-f2-gpu
   factor: f2
   name: GPU spot prices rolling over
@@ -42,6 +46,7 @@ signatures:
   threshold_text: fires when H100/B200 spot 30d change < -15% (median of sources)
   precedent_1999: In 2001-06, IDC said DRAM sales would fall 45.7% to $15.7B from $28.9B as prices collapsed.
   precedent_citation_url: https://www.theregister.com/2001/06/26/dram_sales_to_plummet/
+  pin_date_1999: '2001-06-26'
 - id: sig-f3-churn
   factor: f3
   name: Usage-layer churn accelerating
@@ -51,6 +56,7 @@ signatures:
   precedent_1999: Exodus Communications filed Chapter 11 in 2001-09 after losing customers in the collapsing
     internet economy.
   precedent_citation_url: https://www.latimes.com/archives/la-xpm-2001-sep-27-fi-50296-story.html
+  pin_date_1999: '2001-09-26'
 - id: sig-f3-drift
   factor: f3
   name: Revenue definition drift at labs
@@ -60,6 +66,7 @@ signatures:
   precedent_1999: Exodus filed Chapter 11 in 2001-09, a concrete dot-com-era example of business-model
     and revenue-overbuild drift.
   precedent_citation_url: https://www.latimes.com/archives/la-xpm-2001-sep-27-fi-50296-story.html
+  pin_date_1999: '2002-01-16'
 - id: sig-f3-vendor
   factor: f3
   name: Vendor-financed revenue material
@@ -69,6 +76,7 @@ signatures:
   precedent_1999: By 2002-01, the SEC warned that pro forma earnings could mislead investors by obscuring
     GAAP results.
   precedent_citation_url: https://www.cnet.com/tech/tech-industry/behind-pro-forma-earnings/
+  pin_date_1999: '2002-01-16'
 - id: sig-f3-distress
   factor: f3
   name: Capex-layer edge distress
@@ -78,6 +86,7 @@ signatures:
   precedent_1999: Exodus hit bankruptcy fears in 2001-09 as its customers and network partners were pulled
     into the telecom collapse.
   precedent_citation_url: https://www.nytimes.com/2001/09/26/business/technology-exodus-communications-hit-by-bankruptcy-fears.html
+  pin_date_1999: '2001-09-26'
 - id: sig-f4-megasale
   factor: f4
   name: Insider mega-sale wave
@@ -87,6 +96,7 @@ signatures:
   precedent_1999: By mid-2000, insiders at failed telecom names had sold hundreds of millions of dollars
     of stock before the crash.
   precedent_citation_url: https://www.chicagotribune.com/2002/06/23/insiders-sell-as-failure-looms-2/
+  pin_date_1999: '2000-06-30'
 - id: sig-f5-concentration
   factor: f5
   name: Concentration at record
@@ -96,6 +106,7 @@ signatures:
   precedent_1999: By 2000-12, the S&P 500's top 10 stocks had reached about 23% weight, near the dot-com-era
     concentration peak.
   precedent_citation_url: https://www.rbcwealthmanagement.com/en-asia/insights/the-great-narrowing-sp-500-concentration
+  pin_date_1999: '2000-12-29'
 - id: sig-f5-breadth
   factor: f5
   name: Breadth divergence extreme
@@ -105,3 +116,4 @@ signatures:
   precedent_1999: In 2000, the market's narrow leadership reversed after the dot-com peak, and the S&P
     500 fell into a long lost decade.
   precedent_citation_url: https://www.morganstanley.com/im/publication/insights/articles/article_stockmarketconcentration.pdf
+  pin_date_1999: '2000-03-24'

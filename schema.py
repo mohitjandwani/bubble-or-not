@@ -123,6 +123,42 @@ class HeroSeries(BaseModel):
     pins_1999: list[SignaturePin] = Field(default_factory=list)
     pins_now: list[SignaturePin] = Field(default_factory=list)
     peak_date_1999: Optional[str] = None  # crash segment (post-peak) renders dimmed
+    # Rates toggle: fed funds as change from cycle start (pp), both eras
+    rates_1999: list[SeriesPoint] = Field(default_factory=list)
+    rates_now: list[SeriesPoint] = Field(default_factory=list)
+
+
+class RegistryEdge(BaseModel):
+    edge_id: str
+    from_entity: str
+    to_entity: str
+    archetype: Literal["A", "B", "C", "D", "E", "F"]
+    amount_usd_m: Optional[float] = None
+    announced_date: Optional[str] = None
+    status: Literal["verified", "announced_only", "contradicted", "unverified"]
+    seed_source_url: Optional[str] = None
+    note: Optional[str] = None
+
+
+class WaterfallBar(BaseModel):
+    label: str
+    kind: Literal["reported", "deduction", "result"]
+    value_low: Optional[float] = None   # $B; low/high = uncertainty whiskers
+    value_high: Optional[float] = None
+    citation_url: Optional[str] = None
+    note: Optional[str] = None
+
+
+class F3Exhibit(BaseModel):
+    """CMI sparklines (group header) + waterfall + edge list (drawer)."""
+
+    cmi_stage1: list[SeriesPoint] = Field(default_factory=list)  # weekly
+    cmi_stage2: list[SeriesPoint] = Field(default_factory=list)  # monthly
+    prebreak: bool = False  # stage1 < 0 while stage2 > 0 — "canary before avalanche"
+    circularity_ratio_pct: Optional[float] = None
+    waterfalls: dict[str, list[WaterfallBar]] = Field(default_factory=dict)  # per lab
+    revenue_quality: dict[str, Optional[float]] = Field(default_factory=dict)
+    edges: list[RegistryEdge] = Field(default_factory=list)
 
 
 class StatePayload(BaseModel):
@@ -142,6 +178,7 @@ class StatePayload(BaseModel):
     quant_strip: list[QuantCard] = Field(default_factory=list)
     hero: HeroSeries = Field(default_factory=HeroSeries)
     thermometer: dict[str, Any] = Field(default_factory=dict)  # f6 density, baseline, phrases[]
+    f3: F3Exhibit = Field(default_factory=F3Exhibit)
     danger_thresholds: dict[str, float] = Field(default_factory=dict)  # radar dashed outline
     evidence_count: int = 0
     citation_count: int = 0

@@ -1,0 +1,109 @@
+edges:
+- amount_usd_m: 2000.0
+  announced_date: '2026-01-26'
+  archetype: A
+  from_entity: NVIDIA
+  note: Equity purchase in CoreWeave Class A common stock; expands the chip vendor/customer loop.
+  source_url: https://investors.coreweave.com/news/news-details/2026/NVIDIA-and-CoreWeave-Strengthen-Collaboration-to-Accelerate-Buildout-of-AI-Factories/default.aspx
+  to_entity: CoreWeave
+  edge_id: edge-A-00
+  status: announced_only
+- amount_usd_m: 2000.0
+  announced_date: '2026-03-11'
+  archetype: A
+  from_entity: NVIDIA
+  note: Strategic investment in Nebius to support its AI cloud buildout and future GPU demand.
+  source_url: https://nvidianews.nvidia.com/news/nvidia-and-nebius-partner-to-scale-full-stack-ai-cloud
+  to_entity: Nebius
+  edge_id: edge-A-01
+  status: announced_only
+- amount_usd_m: 6300.0
+  announced_date: '2025-09-15'
+  archetype: B
+  from_entity: NVIDIA
+  note: Backstop agreement to purchase CoreWeave residual unsold cloud capacity through April 2032.
+  source_url: https://www.reuters.com/business/coreweave-nvidia-sign-63-billion-cloud-computing-capacity-order-2025-09-15/
+  to_entity: CoreWeave
+  edge_id: edge-B-02
+  status: announced_only
+- amount_usd_m: 10000.0
+  announced_date: '2023-01-23'
+  archetype: C
+  from_entity: Microsoft
+  note: Multiyear, multibillion-dollar OpenAI investment paired with Azure compute dependence/exclusivity.
+  source_url: https://blogs.microsoft.com/blog/2023/01/23/microsoftandopenaiextendpartnership/
+  to_entity: OpenAI
+  edge_id: edge-C-03
+  status: announced_only
+- amount_usd_m: 4000.0
+  announced_date: '2024-11-22'
+  archetype: C
+  from_entity: Amazon
+  note: Additional investment in Anthropic alongside primary-cloud / primary-training-partner AWS commitment.
+  source_url: https://www.aboutamazon.com/news/aws/amazon-invests-additional-4-billion-anthropic-ai
+  to_entity: Anthropic
+  edge_id: edge-C-04
+  status: announced_only
+- amount_usd_m: 2000.0
+  announced_date: '2025-03-11'
+  archetype: C
+  from_entity: Google
+  note: Strategic investment in Anthropic; press coverage ties the stake to a large cloud/TPU usage relationship.
+  source_url: https://www.nytimes.com/2025/03/11/technology/google-investment-anthropic.html
+  to_entity: Anthropic
+  edge_id: edge-C-05
+  status: announced_only
+- amount_usd_m: 300000.0
+  announced_date: '2025-09-10'
+  archetype: C
+  from_entity: Oracle
+  note: Reported five-year cloud-compute deal for OpenAI; part of the OpenAI/Oracle infrastructure loop.
+  source_url: https://techcrunch.com/2025/09/10/openai-and-oracle-reportedly-ink-historic-cloud-computing-deal/
+  to_entity: OpenAI
+  edge_id: edge-C-06
+  status: announced_only
+- amount_usd_m: 500000.0
+  announced_date: 2025-01
+  archetype: E
+  from_entity: OpenAI, Oracle, and SoftBank
+  note: Stargate joint venture / data-center platform for large-scale AI infrastructure.
+  source_url: https://openai.com/index/five-new-stargate-sites/
+  to_entity: Stargate JV
+  edge_id: edge-E-07
+  status: announced_only
+- amount_usd_m: 2300.0
+  announced_date: '2023-08-03'
+  archetype: D
+  from_entity: CoreWeave
+  note: Debt facility collateralized by Nvidia chips; one of the clearest GPU-backed financings.
+  source_url: https://www.reuters.com/technology/coreweave-raises-23-billion-debt-collateralized-by-nvidia-chips-2023-08-03/
+  to_entity: Blackstone and Magnetar-led debt facility
+  edge_id: edge-D-08
+  status: announced_only
+- amount_usd_m: null
+  announced_date: 2024-10
+  archetype: F
+  from_entity: OpenAI Startup Fund
+  note: Led the seed round for Anysphere (Cursor), an OpenAI API customer and developer-tools startup.
+  source_url: https://techcrunch.com/2025/03/01/openais-startup-empire-the-companies-backed-by-its-venture-fund/
+  to_entity: Anysphere
+  edge_id: edge-F-09
+  status: announced_only
+- amount_usd_m: 675.0
+  announced_date: 2024-02
+  archetype: F
+  from_entity: OpenAI Startup Fund
+  note: Co-led the Figure AI Series B; Figure was also backed by Nvidia and Microsoft.
+  source_url: https://techcrunch.com/2025/03/01/openais-startup-empire-the-companies-backed-by-its-venture-fund/
+  to_entity: Figure AI
+  edge_id: edge-F-10
+  status: announced_only
+- amount_usd_m: 70.0
+  announced_date: 2024-02
+  archetype: F
+  from_entity: OpenAI Startup Fund
+  note: Co-led Ambience Healthcare's Series B.
+  source_url: https://techcrunch.com/2025/03/01/openais-startup-empire-the-companies-backed-by-its-venture-fund/
+  to_entity: Ambience Healthcare
+  edge_id: edge-F-11
+  status: announced_only

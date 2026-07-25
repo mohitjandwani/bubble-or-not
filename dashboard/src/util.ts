@@ -17,3 +17,14 @@ export function fmtTime(iso: string | null | undefined): string {
   if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
+
+/** Scrolls an element into view and gives it one flash pulse — used by every
+ * "click an anchor, jump to the evidence row" interaction (A2 dots, hero pins,
+ * radar vertices). */
+export function scrollToAndFlash(id: string): void {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  el.classList.add("changed");
+  window.setTimeout(() => el.classList.remove("changed"), 1300);
+}

@@ -99,7 +99,8 @@ def _in_window(event_date: str | None, window: str) -> bool:
 
 
 async def run_binary_probe(store, run_id: str, probe_id: str, input_text: str,
-                           window_days: int, ttl_hours: float = 12.0) -> dict:
+                           window_days: int, ttl_hours: float = 12.0,
+                           factor: str = "f2", schema: dict | None = None) -> dict:
     """One Pattern A binary probe → typed events → evidence rows + counters.
     Returns {events, evidence, strong, weak, cost, cache_hit, excluded}."""
     window = _window(window_days)
@@ -109,7 +110,7 @@ async def run_binary_probe(store, run_id: str, probe_id: str, input_text: str,
     else:
         resp = await youcom.research(input_text, effort="standard",
                                      source_control={"freshness": window},
-                                     output_schema=BINARY_SCHEMA)
+                                     output_schema=schema or BINARY_SCHEMA)
         await store.cache_put(probe_id, window, resp)
         resp, cache_hit = resp, False
 
@@ -129,7 +130,7 @@ async def run_binary_probe(store, run_id: str, probe_id: str, input_text: str,
         else:
             weak += 1
         evidence.append(Evidence(
-            evidence_id=f"ev-{run_id}-{probe_id}-{i}", run_id=run_id, factor="f2",
+            evidence_id=f"ev-{run_id}-{probe_id}-{i}", run_id=run_id, factor=factor,
             probe_id=probe_id, window=window, metric=ev.get("event_type", "event"),
             value=None, unit=None,
             as_of=ev.get("date")[:10] if ev.get("date") else None,

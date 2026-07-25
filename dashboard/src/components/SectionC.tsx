@@ -19,6 +19,7 @@ export default function SectionC({ state, changed }: { state: StatePayload; chan
           openSignatureId={openSignatureId}
           setOpenSignatureId={setOpenSignatureId}
           changed={changed}
+          f3={factor === "f3" ? state.f3 : undefined}
         />
       ))}
     </section>

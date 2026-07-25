@@ -34,7 +34,7 @@ FAKE_ENDPOINT = {"f2": "finance_research", "f3": "research", "f4": "finance_rese
 FAKE_COST = {"f2": 0.11, "f3": 0.05, "f4": 0.11, "f6": 0.01}
 FACTOR_NAMES = {"f1": "Liquidity", "f2": "Bellwethers", "f3": "Circular financing",
                 "f4": "Insiders", "f5": "Breadth", "f6": "Narrative"}
-TIMEOUTS = {"quant": 240, "f1": 240, "f2": 480, "f4": 360, "f6": 300}
+TIMEOUTS = {"quant": 240, "f1": 240, "f2": 480, "f3": 600, "f4": 360, "f6": 300}
 MIN_BALANCE_FOR_P3 = 5.0  # below this, priority-3 probes (F4) are dropped
 
 _run_counter = 0
@@ -62,6 +62,38 @@ def apply_real_hero(state: StatePayload) -> None:
     state.hero.era_1999 = [SeriesPoint(**p) for p in e99]
     state.hero.era_now = [SeriesPoint(**p) for p in enow]
     state.hero.peak_date_1999 = meta["peak_date_1999"]
+    try:  # Rates toggle: fed funds as change (pp) from each cycle's anchor month
+        ff = json.loads((BENCH / "fedfunds.json").read_text())
+        by_date = {r["date"][:7]: r["value"] for r in ff}
+
+        def cycle(anchor: str, start: str, end: str) -> list[SeriesPoint]:
+            base = by_date.get(anchor)
+            if base is None:
+                return []
+            pts = [SeriesPoint(t=r["date"][:10], v=round(r["value"] - base, 2))
+                   for r in ff if start <= r["date"][:7] <= end]
+            return pts
+
+        state.hero.rates_1999 = cycle("1999-06", "1999-06", "2001-12")
+        state.hero.rates_now = cycle("2024-09", "2024-09", "2099-01")
+    except FileNotFoundError:
+        pass
+
+
+def refresh_pins(state: StatePayload) -> None:
+    """1999 pins from config pin dates; today pins = currently-fired signatures.
+    Must run AFTER the factor agents have set final lamps."""
+    import yaml as _yaml
+    from schema import SignaturePin
+    cfg = _yaml.safe_load((ROOT / "config/signatures.yaml").read_text())["signatures"]
+    state.hero.pins_1999 = [
+        SignaturePin(signature_id=c["id"], date=c["pin_date_1999"], label=c["name"],
+                     citation_url=c.get("precedent_citation_url"))
+        for c in cfg if c.get("pin_date_1999")]
+    today = str(_now().date())
+    state.hero.pins_now = [
+        SignaturePin(signature_id=s.signature_id, date=today, label=s.name)
+        for s in state.signatures if s.lamp == "fired"]
 
 
 def refresh_signature_config(state: StatePayload) -> None:
@@ -192,7 +224,9 @@ async def run_pipeline() -> str:
         import subprocess
         sha = subprocess.run(["git", "log", "-1", "--format=%h", "--", "config/"],
                              capture_output=True, text=True, cwd=ROOT).stdout.strip()
-        state.config_version = sha or "dev"
+        # Render's runtime image is not a git checkout, so fall back to the deploy
+        # commit Render injects. "dev" would silently break the Forge audit join.
+        state.config_version = sha or os.environ.get("RENDER_GIT_COMMIT", "")[:7] or "dev"
     except Exception:
         pass
     await store_mod.STORE.put_state(state)
@@ -444,6 +478,20 @@ async def run_pipeline() -> str:
         fr.state = "low_coverage"  # fake — flagged until Pass 5
         await _emit(run_id, "agent.completed", factor=f, detail={"score": fr.score, "state": fr.state})
 
+    async def real_f3() -> None:
+        nonlocal total_cost
+        from agents.f3_run import run_f3
+
+        async def emit(event_type: str, **kw) -> None:
+            await _emit(run_id, event_type, **kw)
+
+        await _emit(run_id, "agent.started", factor="f3")
+        cost = await run_f3(store_mod.STORE, state, run_id, emit)
+        total_cost += cost
+        f3 = _factor(state, "f3")
+        await _emit(run_id, "agent.completed", factor="f3",
+                    detail={"score": f3.score, "state": f3.state})
+
     if _mock():
         await asyncio.gather(guard(["f1", "f5"], "quant", real_quant()),
                              *(fake_factor(f) for f in ("f2", "f3", "f4", "f6")))
@@ -452,9 +500,9 @@ async def run_pipeline() -> str:
         await asyncio.gather(
             guard(["f1"], "f1", real_f1()),
             guard(["f2"], "f2", real_f2()),
+            guard(["f3"], "f3", real_f3()),
             guard(["f4"], "f4", real_f4()),
             guard(["f6"], "f6", real_f6()),
-            fake_factor("f3"),
         )
 
     state.bti = compute_bti({fr.factor: fr.score for fr in state.factors})
@@ -465,18 +513,13 @@ async def run_pipeline() -> str:
     state.driven_by = f"Driven by: {FACTOR_NAMES[top]} {deltas[top]:+.1f}"
     state.total_cost = round(total_cost, 2)
     state.status, state.updated_at = "done", _now()
+    refresh_pins(state)
     all_rows = []
     for f in ("f1", "f2", "f3", "f4", "f5", "f6"):
         all_rows.extend(await store_mod.STORE.evidence_for(f, run_id))
     state.evidence_count = len(all_rows)
     state.citation_count = len({r.source_url for r in all_rows if r.source_url})
 
-    # F3 keeps fixture evidence rows until Pass 5
-    _, fixture_rows = store_mod.load_fixture_payload()
-    await store_mod.STORE.put_evidence(run_id, [
-        r.model_copy(update={"run_id": run_id, "evidence_id": f"{r.evidence_id}-{run_id}"})
-        for r in fixture_rows if r.factor == "f3"
-    ])
     await store_mod.STORE.put_state(state)
     bal_after = None if _mock() else await youcom.balance()
     await _emit(run_id, "run.completed",

@@ -17,8 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from schema import (  # noqa: E402
-    Evidence, FactorResult, HeroSeries, QuantCard, SeriesPoint, SignaturePin,
-    SignatureState, StatePayload, compute_bti, stage_sentence,
+    Evidence, F3Exhibit, FactorResult, HeroSeries, QuantCard, RegistryEdge,
+    SeriesPoint, SignaturePin, SignatureState, StatePayload, WaterfallBar,
+    compute_bti, stage_sentence,
 )
 
 NOW = datetime(2026, 7, 24, 9, 30, tzinfo=timezone.utc)
@@ -137,6 +138,63 @@ hero = HeroSeries(
     peak_date_1999="2000-03-10",
 )
 
+# hero rates (change from cycle start, pp) — synthetic shape until pipeline fills
+hero.rates_1999 = [SeriesPoint(t=f"1999-{m:02d}-01", v=round(0.25 * max(0, m - 5), 2))
+                   for m in range(6, 13)] + [
+                  SeriesPoint(t=f"2000-{m:02d}-01", v=round(1.75 + 0.25 * min(m, 3), 2))
+                  for m in range(1, 7)]
+hero.rates_now = [SeriesPoint(t=f"2024-{m:02d}-01", v=round(-0.25 * max(0, m - 8), 2))
+                  for m in range(9, 13)] + [
+                 SeriesPoint(t=f"2025-{m:02d}-01", v=-1.0) for m in range(1, 13)] + [
+                 SeriesPoint(t=f"2026-{m:02d}-01", v=-1.37) for m in range(1, 8)]
+
+# ---------------------------------------------------------------- F3 exhibit
+f3_exhibit = F3Exhibit(
+    cmi_stage1=[SeriesPoint(t=f"2026-06-{d:02d}", v=v) for d, v in
+                [(5, 0.3), (12, 0.1), (19, -0.1), (26, -0.2)]] +
+               [SeriesPoint(t="2026-07-03", v=-0.25), SeriesPoint(t="2026-07-10", v=-0.2)],
+    cmi_stage2=[SeriesPoint(t="2026-04-30", v=0.5), SeriesPoint(t="2026-05-31", v=0.7),
+                SeriesPoint(t="2026-06-30", v=0.6)],
+    prebreak=True,
+    circularity_ratio_pct=1.4,
+    waterfalls={"OpenAI": [
+        WaterfallBar(label="Reported ARR", kind="reported", value_low=20.0, value_high=20.0,
+                     citation_url="https://example.com/fixture"),
+        WaterfallBar(label="Portfolio-customer revenue", kind="deduction", value_low=1.2,
+                     value_high=2.0, citation_url="https://example.com/fixture"),
+        WaterfallBar(label="Credit-cohort inflation", kind="deduction", value_low=0.8,
+                     value_high=1.6, citation_url="https://example.com/fixture",
+                     note="not GAAP revenue"),
+        WaterfallBar(label="Committed-not-recognized", kind="deduction", value_low=1.0,
+                     value_high=3.0, citation_url="https://example.com/fixture"),
+        WaterfallBar(label="Cash-quality band", kind="result", value_low=13.4, value_high=17.0),
+    ], "Anthropic": [
+        WaterfallBar(label="Reported ARR", kind="reported", value_low=14.0, value_high=14.0,
+                     citation_url="https://example.com/fixture"),
+        WaterfallBar(label="Portfolio-customer revenue", kind="deduction", value_low=0.5,
+                     value_high=1.0, citation_url="https://example.com/fixture"),
+        WaterfallBar(label="Credit-cohort inflation", kind="deduction", value_low=0.4,
+                     value_high=0.9, citation_url="https://example.com/fixture",
+                     note="not GAAP revenue"),
+        WaterfallBar(label="Committed-not-recognized", kind="deduction", value_low=0.5,
+                     value_high=1.5, citation_url="https://example.com/fixture"),
+        WaterfallBar(label="Cash-quality band", kind="result", value_low=10.6, value_high=12.6),
+    ]},
+    revenue_quality={"OpenAI": 0.76, "Anthropic": 0.83},
+    edges=[
+        RegistryEdge(edge_id="e-nvda-crwv", from_entity="NVIDIA", to_entity="CoreWeave",
+                     archetype="A", amount_usd_m=6300, announced_date="2025-03-01",
+                     status="verified", seed_source_url="https://example.com/fixture"),
+        RegistryEdge(edge_id="e-msft-oai", from_entity="Microsoft", to_entity="OpenAI",
+                     archetype="C", amount_usd_m=13000, announced_date="2023-01-23",
+                     status="verified", seed_source_url="https://example.com/fixture"),
+        RegistryEdge(edge_id="e-oaifund-x", from_entity="OpenAI Startup Fund",
+                     to_entity="Harvey", archetype="F", amount_usd_m=80,
+                     announced_date="2025-11-01", status="announced_only",
+                     seed_source_url="https://example.com/fixture"),
+    ],
+)
+
 # ---------------------------------------------------------------- quant strip
 quant_strip = [
     QuantCard(card_id="top10", label="Top-10 S&P 500 weight", value=39.4, unit="%",
@@ -170,6 +228,7 @@ state = StatePayload(
             {"text": "can't-lose trade", "count": 6, "url": "https://example.com/c"},
         ]},
     danger_thresholds=cfg_w["danger_thresholds"],
+    f3=f3_exhibit,
     evidence_count=87, citation_count=112, total_cost=2.14,
     config_version="fixture",
 )

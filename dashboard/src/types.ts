@@ -96,13 +96,52 @@ export interface HeroSeries {
   pins_1999: SignaturePin[];
   pins_now: SignaturePin[];
   peak_date_1999?: string | null;
+  rates_1999: SeriesPoint[];
+  rates_now: SeriesPoint[];
 }
 
 export interface Thermometer {
   density?: number;
   baseline_1999?: number;
+  baseline_citation?: string | null;
   score?: number;
   phrases?: { text: string; count: number; url?: string | null }[];
+}
+
+export type EdgeArchetype = "A" | "B" | "C" | "D" | "E" | "F";
+export type EdgeStatus = "verified" | "announced_only" | "contradicted" | "unverified";
+
+export interface RegistryEdge {
+  edge_id: string;
+  from_entity: string;
+  to_entity: string;
+  archetype: EdgeArchetype;
+  amount_usd_m?: number | null;
+  announced_date?: string | null;
+  status: EdgeStatus;
+  seed_source_url?: string | null;
+  note?: string | null;
+}
+
+export type WaterfallKind = "reported" | "deduction" | "result";
+
+export interface WaterfallBar {
+  label: string;
+  kind: WaterfallKind;
+  value_low?: number | null;
+  value_high?: number | null;
+  citation_url?: string | null;
+  note?: string | null;
+}
+
+export interface F3Exhibit {
+  cmi_stage1: SeriesPoint[];
+  cmi_stage2: SeriesPoint[];
+  prebreak: boolean;
+  circularity_ratio_pct?: number | null;
+  waterfalls: Record<string, WaterfallBar[]>;
+  revenue_quality: Record<string, number | null | undefined>;
+  edges: RegistryEdge[];
 }
 
 export interface StatePayload {
@@ -120,6 +159,7 @@ export interface StatePayload {
   quant_strip: QuantCard[];
   hero: HeroSeries;
   thermometer: Thermometer;
+  f3: F3Exhibit;
   danger_thresholds: Record<string, number>;
   evidence_count: number;
   citation_count: number;

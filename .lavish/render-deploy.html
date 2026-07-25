@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bubble or Not — Render Deployment (Pass 6)</title>
+<style>
+  :root{
+    --bg:#0B0E14; --panel:#11151E; --panel2:#151B27; --border:#1E2430; --border2:#2A3342;
+    --txt:#E6EDF3; --dim:#8B95A7; --faint:#5A6478;
+    --amber:#C8933A; --cyan:#7DD3FC; --red:#E5484D; --yellow:#EAB308; --green:#34D399; --gray:#4B5563;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;min-width:0}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.55 -apple-system,"Inter","Segoe UI",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px 90px}
+  .num,code,pre{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  :where(p,li,td,th,h1,h2,h3,.badge){overflow-wrap:anywhere}
+  a{color:var(--cyan);text-decoration:none}
+
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(11,14,20,.93);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border)}
+  .topbar-in{max-width:1120px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .wordmark{font-weight:700;letter-spacing:-.02em}
+  .wordmark .q{color:var(--amber)}
+  .spacer{flex:1}
+  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);border-radius:99px;
+    padding:3px 12px;font-size:12.5px;color:var(--dim);white-space:nowrap}
+  .chip .dot{width:8px;height:8px;border-radius:99px;flex:none}
+  .dot-g{background:var(--green)} .dot-c{background:var(--cyan)} .dot-a{background:var(--amber)}
+  .dot-r{background:var(--red)} .dot-y{background:var(--yellow)} .dot-n{background:var(--gray)}
+
+  h1{font-size:31px;letter-spacing:-.03em;margin:46px 0 8px}
+  .sub{color:var(--dim);max-width:76ch;margin:0 0 4px}
+  h2{font-size:19.5px;letter-spacing:-.02em;margin:58px 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  h2 .k{font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--border2);
+    border-radius:4px;padding:2px 7px;letter-spacing:.08em}
+  .h2sub{color:var(--dim);font-size:13.5px;margin:0 0 20px;max-width:78ch}
+  h3{font-size:15px;margin:0 0 8px;letter-spacing:-.01em}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  @media(max-width:860px){.grid3,.grid2{grid-template-columns:minmax(0,1fr)}}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .card.ok{border-left:3px solid var(--green)}
+  .card.warn{border-left:3px solid var(--yellow)}
+  .card.bad{border-left:3px solid var(--red)}
+  .card.pick{border-color:var(--cyan);box-shadow:inset 0 0 0 1px rgba(125,211,252,.25)}
+  .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;color:var(--faint);text-transform:uppercase;margin-bottom:7px}
+  .card p{margin:0;color:var(--dim);font-size:13.5px}
+  .card p+p{margin-top:8px}
+  .card b{color:var(--txt);font-weight:600}
+  .big{font-size:25px;font-family:var(--mono);letter-spacing:-.02em;margin-bottom:2px}
+  .big.g{color:var(--green)} .big.r{color:var(--red)} .big.y{color:var(--yellow)} .big.c{color:var(--cyan)}
+
+  .alert{border:1px solid var(--red);border-radius:11px;background:linear-gradient(180deg,rgba(229,72,77,.10),rgba(229,72,77,.02));
+    padding:20px 22px;margin-top:20px}
+  .alert .tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+    color:var(--red);text-transform:uppercase;margin-bottom:10px}
+  .alert h3{font-size:18px;letter-spacing:-.02em;margin-bottom:10px}
+  .alert p{color:var(--dim);font-size:14px;margin:0 0 10px;max-width:80ch}
+  .alert p:last-child{margin-bottom:0}
+  .alert strong{color:var(--txt)}
+
+  pre{background:#0d1117;border:1px solid var(--border2);border-radius:8px;padding:13px 15px;overflow-x:auto;
+    font-size:12.5px;line-height:1.6;margin:12px 0;color:#c9d5e1}
+  pre .c{color:var(--faint)}
+  pre .k{color:var(--cyan)}
+  pre .s{color:var(--green)}
+  pre .r{color:var(--red);font-weight:600}
+  pre .y{color:var(--yellow)}
+  code.inl{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:12.5px;color:var(--txt)}
+
+  .tblwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--panel);margin-top:18px}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+  th{text-align:left;padding:11px 13px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    color:var(--faint);text-transform:uppercase;border-bottom:1px solid var(--border2);white-space:nowrap;background:var(--panel2)}
+  td{padding:12px 13px;border-bottom:1px solid var(--border);color:var(--dim);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td b{color:var(--txt);font-weight:600}
+  td .ev{font-family:var(--mono);font-size:11.5px;color:var(--cyan);display:block;margin-top:4px}
+  .badge{display:inline-block;border-radius:5px;padding:2px 8px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.05em;white-space:nowrap;border:1px solid}
+  .b-crit{color:var(--red);border-color:rgba(229,72,77,.45);background:rgba(229,72,77,.11)}
+  .b-high{color:var(--yellow);border-color:rgba(234,179,8,.42);background:rgba(234,179,8,.10)}
+  .b-med{color:var(--amber);border-color:rgba(200,147,58,.42);background:rgba(200,147,58,.10)}
+  .b-ok{color:var(--green);border-color:rgba(52,211,153,.42);background:rgba(52,211,153,.10)}
+  .b-n{color:var(--dim);border-color:var(--border2);background:var(--panel2)}
+
+  .mermaid{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:18px;overflow-x:auto}
+
+  ol.steps{list-style:none;counter-reset:s;padding:0;margin:20px 0 0}
+  ol.steps>li{counter-increment:s;position:relative;padding:0 0 22px 46px;border-left:1px solid var(--border);margin-left:14px}
+  ol.steps>li:last-child{border-left-color:transparent;padding-bottom:0}
+  ol.steps>li::before{content:counter(s);position:absolute;left:-14px;top:-2px;width:28px;height:28px;border-radius:99px;
+    background:var(--panel2);border:1px solid var(--border2);color:var(--dim);font-family:var(--mono);font-size:12px;
+    display:flex;align-items:center;justify-content:center}
+  ol.steps>li.danger::before{border-color:var(--red);color:var(--red)}
+  ol.steps>li.manual::before{border-color:var(--amber);color:var(--amber)}
+  ol.steps h3{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+  ol.steps p{color:var(--dim);font-size:13.5px;margin:0 0 6px;max-width:80ch}
+
+  ul.tight{margin:8px 0 0;padding-left:19px;color:var(--dim);font-size:13.5px}
+  ul.tight li{margin-bottom:6px}
+  ul.tight b{color:var(--txt);font-weight:600}
+
+  .kv{display:flex;gap:9px;font-size:13px;padding:7px 0;border-bottom:1px dashed var(--border);align-items:baseline}
+  .kv:last-child{border-bottom:none}
+  .kv .k2{font-family:var(--mono);font-size:11.5px;color:var(--faint);flex:none;width:118px}
+  .kv .v{color:var(--dim)}
+  .kv .v b{color:var(--txt)}
+
+  form.q{background:var(--panel);border:1px solid var(--border2);border-radius:11px;padding:18px 20px;margin-top:16px}
+  form.q .lbl{margin-bottom:12px}
+  form.q label{display:flex;gap:11px;align-items:flex-start;padding:9px 11px;border:1px solid var(--border);
+    border-radius:8px;margin-bottom:8px;cursor:pointer;background:var(--panel2)}
+  form.q label:hover{border-color:var(--border2)}
+  form.q input[type=radio]{margin-top:3px;flex:none;accent-color:var(--cyan)}
+  form.q .ot{font-size:13.5px;color:var(--txt);font-weight:600;display:block;margin-bottom:2px}
+  form.q .od{font-size:12.5px;color:var(--dim);display:block}
+  form.q button{background:var(--cyan);color:#07131c;border:none;border-radius:7px;padding:9px 17px;
+    font-weight:650;font-size:13px;cursor:pointer;margin-top:4px}
+  form.q button:hover{filter:brightness(1.08)}
+  .foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--border);color:var(--faint);font-size:12.5px}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-in">
+  <span class="wordmark">Bubble or Not <span class="q">/ deploy</span></span>
+  <span class="chip"><span class="dot dot-a"></span>Pass 6 — Render</span>
+  <span class="spacer"></span>
+  <span class="chip"><span class="dot dot-r"></span>0 services live</span>
+  <span class="chip"><span class="dot dot-c"></span>HEAD b3b13af · Pass 3</span>
+</div></div>
+
+<div class="wrap">
+
+  <h1>Deploying to Render</h1>
+  <p class="sub">Everything below was verified against the repo and the Render CLI, not assumed. One finding
+  would have silently destroyed your Pass 8 demo insurance, so it leads. Two decisions are already locked from
+  your answers; three remain open at the bottom.</p>
+
+  <!-- ================= STATE ================= -->
+  <h2><span class="k">01</span> Where things actually stand</h2>
+  <p class="h2sub">Three facts shape the whole plan. The first two mean there is no "just deploy it" path — a repo
+  and a Blueprint have to exist first.</p>
+
+  <div class="grid3">
+    <div class="card bad">
+      <div class="lbl">Git remote</div>
+      <div class="big r">none</div>
+      <p><code class="inl">git remote -v</code> returns empty. Render builds only from a hosted repo, so
+      <b>nothing is deployable until this repo is pushed</b>.</p>
+    </div>
+    <div class="card bad">
+      <div class="lbl">Render services</div>
+      <div class="big r">0</div>
+      <p><code class="inl">render services list</code> returns <code class="inl">null</code>. Workspace is authed as
+      <b>Mohit Jandwani's Workspace</b>. No database, no web service, nothing to attach to yet.</p>
+    </div>
+    <div class="card warn">
+      <div class="lbl">Render CLI v2.22.0</div>
+      <div class="big y">read-only</div>
+      <p>Only <code class="inl">blueprints validate</code> and <code class="inl">services list</code> exist.
+      <b>The CLI cannot create services.</b> Creation is Dashboard-Blueprint or REST API.</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:16px">
+    <div class="card ok">
+      <div class="lbl">Already deploy-ready — no change needed</div>
+      <ul class="tight">
+        <li><b>DATABASE_URL is env-driven</b> with an in-memory fallback (<code class="inl">agents/api.py:37</code>),
+        so the app adapts to Render with zero code change.</li>
+        <li><b>The SPA cannot trigger agents.</b> No <code class="inl">rescore</code> anywhere in
+        <code class="inl">dashboard/src/</code> — the admin key stays server-side, exactly as PLAN.md §6.3 requires.</li>
+        <li><b><code class="inl">/healthz</code> exists</b> and is a valid Render health check target.</li>
+        <li><b>Repo is 640K</b> with <code class="inl">node_modules</code> and <code class="inl">dist/</code> gitignored.
+        Benchmarks in <code class="inl">data/benchmarks/</code> are committed, so hero series survive the deploy.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="lbl">Credentials on this machine</div>
+      <div class="kv"><span class="k2">render</span><span class="v">authed · workspace <b>tea-cspvlbogph6c73ftadg0</b></span></div>
+      <div class="kv"><span class="k2">gh</span><span class="v">authed as <b>MohitKumar1991</b> · ssh</span></div>
+      <div class="kv"><span class="k2">secrets</span><span class="v"><b>4</b> keys in <code class="inl">.env</code> (gitignored): YOU, ANTHROPIC, FMP, ADMIN</span></div>
+      <div class="kv"><span class="k2">python</span><span class="v"><b>3.12.11</b> — pin this on Render</span></div>
+    </div>
+  </div>
+
+  <!-- ================= CRITICAL ================= -->
+  <h2><span class="k">02</span> The one that would have bitten you</h2>
+  <p class="h2sub">This is the reason to read a deploy plan before running one.</p>
+
+  <div class="alert">
+    <div class="tag"><span class="dot dot-r" style="width:8px;height:8px;border-radius:99px;display:inline-block"></span>Critical · data loss</div>
+    <h3><code class="inl" style="font-size:15px">schema.sql</code> line 3 is a <code class="inl" style="font-size:15px">DROP TABLE</code></h3>
+<pre><span class="c">-- schema.sql:1-6</span>
+<span class="c">-- Bubble or Not — DDL (agents-README §6)</span>
+<span class="r">DROP TABLE IF EXISTS</span> probe_cache, registry_edges, signatures, factor_results,
+                     evidence, run_events, runs <span class="k">CASCADE</span>;
+<span class="k">CREATE TABLE</span> runs(  <span class="c">-- 7 plain CREATE TABLE, 0 IF NOT EXISTS</span></pre>
+    <p>The natural instinct when wiring a new Render service is to make the database self-bootstrapping — put
+    <code class="inl">psql -f schema.sql</code> in the build or a <code class="inl">preDeployCommand</code> so a fresh
+    deploy always has its tables. <strong>Doing that here wipes every stored run on every single deploy.</strong></p>
+    <p>That is not just lost history. PLAN.md Pass 8 designates
+    <code class="inl">GET /state?run_id=&lt;past-run&gt;</code> as your <strong>demo insurance</strong> — the replay URL you
+    fall back to if the backend dies on stage. An auto-applied schema means that URL 404s after every deploy, and you
+    would discover it at the worst possible moment.</p>
+    <p><strong>Rule:</strong> <code class="inl">schema.sql</code> is a one-shot bootstrap. Apply it exactly once, by hand,
+    via <code class="inl">render psql</code>. Never in build, never in pre-deploy, never on startup. If you later want
+    idempotent boots, that is a separate change to <code class="inl">CREATE TABLE IF NOT EXISTS</code> with the
+    <code class="inl">DROP</code> removed.</p>
+  </div>
+
+  <!-- ================= BLOCKERS ================= -->
+  <h2><span class="k">03</span> All seven blockers</h2>
+  <p class="h2sub">Ordered by when they would bite. Every row cites the file or command that proves it. Rows 1–4 are
+  hard blockers; 5–7 produce a deploy that looks green but behaves wrong.</p>
+
+  <div class="tblwrap"><table>
+    <thead><tr><th>#</th><th>Blocker</th><th>Evidence</th><th>What happens if ignored</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="badge b-crit">CRIT</span></td>
+        <td><b>schema.sql drops all tables</b><span class="ev">schema.sql:3</span></td>
+        <td>Line 3 is <code class="inl">DROP TABLE IF EXISTS … CASCADE</code>; 7 plain <code class="inl">CREATE TABLE</code>, zero <code class="inl">IF NOT EXISTS</code></td>
+        <td>Every deploy erases all runs → Pass 8 replay URL dies</td>
+        <td>Apply once by hand via <code class="inl">render psql</code>. Never automate.</td>
+      </tr>
+      <tr>
+        <td><span class="badge b-crit">CRIT</span></td>
+        <td><b>No git remote</b><span class="ev">git remote -v → empty</span></td>
+        <td>Local-only repo on <code class="inl">main</code> at <code class="inl">b3b13af</code></td>
+        <td>Render has nothing to build from. Full stop.</td>
+        <td><code class="inl">gh repo create --private</code> + push</td>
+      </tr>
+      <tr>
+        <td><span class="badge b-high">HIGH</span></td>
+        <td><b>CLI can't create services</b><span class="ev">render --help</span></td>
+        <td>v2.22.0 exposes <code class="inl">blueprints validate</code> and <code class="inl">services list</code> only</td>
+        <td>No amount of CLI scripting will stand this up</td>
+        <td>Commit <code class="inl">render.yaml</code>, create the Blueprint once in the Dashboard</td>
+      </tr>
+      <tr>
+        <td><span class="badge b-high">HIGH</span></td>
+        <td><b><code class="inl">asyncpg</code> missing from requirements</b><span class="ev">agents/pg.py:10 imports it</span></td>
+        <td>Declared: fastapi, httpx, pydantic, python-dotenv, pyyaml, uvicorn, yfinance. <b>Not asyncpg.</b></td>
+        <td>Build goes <b>green</b>, service crashes on boot at import — the most confusing failure mode there is</td>
+        <td>Add <code class="inl">asyncpg==0.30.0</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge b-high">HIGH</span></td>
+        <td><b>SPA can't reach the API once split</b><span class="ev">dashboard/src/api.ts:10,15,21</span></td>
+        <td>Relative <code class="inl">/state</code>, <code class="inl">/events</code>, <code class="inl">/evidence/…</code> with no env var. Works locally only via the vite proxy.</td>
+        <td>Static site serves the page, then every API call 404s against the static host</td>
+        <td>Static-site rewrites — see §04</td>
+      </tr>
+      <tr>
+        <td><span class="badge b-med">MED</span></td>
+        <td><b>CORS hardcoded to localhost</b><span class="ev">agents/api.py:27</span></td>
+        <td><code class="inl">allow_origins=["http://localhost:5173","http://127.0.0.1:5173"]</code></td>
+        <td>Browser-blocked calls — <em>if</em> you go the cross-origin route</td>
+        <td>Moot under rewrites; still worth env-driving per PLAN.md §6.3</td>
+      </tr>
+      <tr>
+        <td><span class="badge b-med">MED</span></td>
+        <td><b><code class="inl">config_version</code> shells out to git</b><span class="ev">agents/pipeline.py:191-195</span></td>
+        <td><code class="inl">git rev-parse</code> at runtime, falling back to <code class="inl">"dev"</code></td>
+        <td>Silently becomes <code class="inl">"dev"</code> → the Opsera Forge audit join key is worthless</td>
+        <td>Read <code class="inl">RENDER_GIT_COMMIT</code>, which Render injects</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <p style="color:var(--faint);font-size:12.5px;margin-top:10px">Housekeeping, not a blocker:
+  <code class="inl">data/cache/quant-2026-07-24.json</code> is committed — a dated cache file in git that will go stale.</p>
+
+  <!-- ================= ARCHITECTURE ================= -->
+  <h2><span class="k">04</span> Proposed architecture — four resources</h2>
+  <p class="h2sub">This is PLAN.md Pass 6's shape, with one refinement: the static site <em>proxies</em> the API rather than
+  calling it cross-origin. Follow the arrow from the browser — it only ever talks to one origin.</p>
+
+  <div class="mermaid">
+flowchart TB
+  U["Browser"]
+  subgraph SS["bubble-web · Static Site · free"]
+    ST["dashboard/dist<br/>index.html + assets"]
+    RW{"routes: rewrite"}
+    FX["/fixtures/*.json<br/>stays local → offline fallback survives"]
+  end
+  subgraph AP["bubble-api · Web Service · Starter"]
+    FA["uvicorn agents.api:app<br/>--host 0.0.0.0 --port $PORT"]
+    HZ["/healthz"]
+  end
+  DB[("bubble-db · Postgres 16<br/>runs · run_events · evidence<br/>factor_results · signatures")]
+  CR["bubble-cron · 0 */6 * * *"]
+
+  U --> ST
+  U --> RW
+  RW -->|"/state · /events · /evidence/*"| FA
+  ST -.-> FX
+  FA --> DB
+  CR -->|"POST /rescore<br/>X-Admin-Key — server-side only"| FA
+  HZ -.-> FA
+  </div>
+
+  <div class="grid2" style="margin-top:16px">
+    <div class="card">
+      <div class="lbl">Why the browser never sees the API origin</div>
+      <p>A Render static-site <b>rewrite</b> is a server-side proxy, not a redirect. The browser requests
+      <code class="inl">/state</code> from the static host; Render fetches it from the API and returns it. Same origin
+      throughout, so <b>there is no CORS preflight at all</b> and <code class="inl">api.ts</code> needs no change.</p>
+      <p><b>Order matters:</b> the SPA catch-all (<code class="inl">/* → /index.html</code>) must come <em>last</em>, or it
+      swallows the API routes above it.</p>
+    </div>
+    <div class="card">
+      <div class="lbl">Cost — you said credits cover it</div>
+      <div class="kv"><span class="k2">bubble-api</span><span class="v">Starter <b>~$7/mo</b> — required, see below</span></div>
+      <div class="kv"><span class="k2">bubble-db</span><span class="v">Postgres basic-256mb <b>~$6/mo</b></span></div>
+      <div class="kv"><span class="k2">bubble-web</span><span class="v">Static site <b>free</b></span></div>
+      <div class="kv"><span class="k2">bubble-cron</span><span class="v">Billed per run — <b>pennies</b> at 4×/day</span></div>
+      <p style="margin-top:10px">Starter is not optional: PLAN.md §10 flags free-tier spin-down as a demo-day gotcha, and
+      Pass 6's own checklist tests <em>"wait 20+ min idle, reload → instant"</em>. Only a paid instance passes that.</p>
+    </div>
+  </div>
+
+  <!-- ================= DECISION ================= -->
+  <h2><span class="k">05</span> The one real design decision</h2>
+  <p class="h2sub">Blocker 5 has two fixes. They are not equivalent — one touches three files and adds a failure mode,
+  the other touches zero application code.</p>
+
+  <div class="grid2">
+    <div class="card pick">
+      <div class="lbl" style="color:var(--cyan)">Recommended · static-site rewrites</div>
+      <h3>Proxy the API through the static host</h3>
+<pre><span class="c"># render.yaml — bubble-web</span>
+<span class="k">routes:</span>
+  - <span class="k">type:</span> rewrite
+    <span class="k">source:</span> /state
+    <span class="k">destination:</span> <span class="s">https://bubble-api.onrender.com/state</span>
+  - <span class="k">type:</span> rewrite
+    <span class="k">source:</span> /events
+    <span class="k">destination:</span> <span class="s">https://bubble-api.onrender.com/events</span>
+  - <span class="k">type:</span> rewrite
+    <span class="k">source:</span> /evidence/*
+    <span class="k">destination:</span> <span class="s">https://bubble-api.onrender.com/evidence/*</span>
+  - <span class="k">type:</span> rewrite        <span class="c"># MUST be last</span>
+    <span class="k">source:</span> /*
+    <span class="k">destination:</span> /index.html</pre>
+      <ul class="tight">
+        <li><b>Zero application code changes.</b> <code class="inl">api.ts</code> and <code class="inl">api.py</code> untouched.</li>
+        <li><b>CORS becomes irrelevant</b> — one origin, no preflight, nothing to misconfigure.</li>
+        <li><b><code class="inl">/fixtures/*</code> keeps resolving locally</b>, so the offline fallback in
+        <code class="inl">useDashboardData.ts:78</code> still works when the API is down.</li>
+        <li><b>Each service keeps its native runtime</b> — Node builds the SPA, Python runs the API. No single image needing both.</li>
+      </ul>
+      <p style="margin-top:10px;color:var(--yellow)"><b>Unverified:</b> that Render rewrites accept an absolute external
+      destination. I cannot confirm this without a live deploy. If it rejects them, fall back to the right-hand option —
+      a ~20 minute change, not a redesign.</p>
+    </div>
+
+    <div class="card">
+      <div class="lbl">Fallback · cross-origin</div>
+      <h3>Absolute API base + CORS allowlist</h3>
+<pre><span class="c">// dashboard/src/api.ts</span>
+<span class="k">const</span> BASE = import.meta.env.VITE_API_BASE ?? <span class="s">""</span>;
+<span class="k">function</span> getJson(url) { fetch(BASE + url) }
+
+<span class="c"># agents/api.py</span>
+allow_origins=os.environ[<span class="s">"CORS_ORIGINS"</span>].split(<span class="s">","</span>)</pre>
+      <ul class="tight">
+        <li>Touches <b>api.ts, api.py, and render.yaml</b> — three files, one of them the contract boundary.</li>
+        <li>Adds a real failure mode: a wrong <code class="inl">VITE_API_BASE</code> is baked in at
+        <b>build</b> time, so fixing it means a rebuild, not an env-var edit.</li>
+        <li>Every API call becomes cross-origin, so a CORS mistake is now a live demo failure.</li>
+        <li>Genuine upside: the API is directly reachable, which is marginally easier to <code class="inl">curl</code> and debug.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================= SEQUENCE ================= -->
+  <h2><span class="k">06</span> Deploy sequence</h2>
+  <p class="h2sub">Nine steps. Amber = must be done by hand in the Dashboard. Red = destructive, exactly once, never automated.</p>
+
+  <ol class="steps">
+    <li>
+      <h3>Fix the two code blockers <span class="badge b-n">edits</span></h3>
+      <p>Add <code class="inl">asyncpg==0.30.0</code> to <code class="inl">requirements.txt</code>, and make
+      <code class="inl">config_version</code> prefer <code class="inl">RENDER_GIT_COMMIT</code> before shelling out to git.</p>
+    </li>
+    <li>
+      <h3>Add <code class="inl">render.yaml</code> <span class="badge b-n">new file</span></h3>
+      <p>Full Blueprint below. Validate before pushing — this catches schema errors without burning a deploy.</p>
+<pre><span class="k">render</span> blueprints validate ./render.yaml</pre>
+    </li>
+    <li>
+      <h3>Create the private repo and push</h3>
+<pre><span class="k">gh</span> repo create bubble-or-not --private --source=. --remote=origin
+<span class="k">git</span> push -u origin main</pre>
+      <p>Confirm <code class="inl">.env</code> is absent from the push — it is gitignored, but verify with
+      <code class="inl">git ls-files | grep env</code> before the repo exists anywhere remote.</p>
+    </li>
+    <li class="manual">
+      <h3>Create the Blueprint <span class="badge b-med">Dashboard — CLI can't</span></h3>
+      <p>Render Dashboard → <b>New → Blueprint</b> → pick the repo. It reads <code class="inl">render.yaml</code> and
+      provisions all four resources. This is the one irreducibly manual step.</p>
+    </li>
+    <li class="manual">
+      <h3>Set the four secrets <span class="badge b-med">Dashboard</span></h3>
+      <p>Marked <code class="inl">sync: false</code> in the Blueprint, so Render prompts for them and never stores them in git:
+      <code class="inl">YOU_API_KEY</code>, <code class="inl">ANTHROPIC_API_KEY</code>, <code class="inl">FMP_API_KEY</code>,
+      <code class="inl">ADMIN_KEY</code>. <code class="inl">DATABASE_URL</code> is wired automatically from the database.</p>
+    </li>
+    <li class="danger">
+      <h3>Apply the schema — once, by hand <span class="badge b-crit">destructive</span></h3>
+<pre><span class="k">render</span> psql bubble-db &lt; schema.sql</pre>
+      <p>Then <b>never run it again</b>. Re-running drops every table and takes your replay URL with it. See §02.</p>
+    </li>
+    <li>
+      <h3>Verify the API alone, before the SPA</h3>
+<pre>curl -s https://bubble-api.onrender.com/healthz
+<span class="c"># expect {"ok":true,"store":"PGStore"} — PGStore, not MemoryStore</span></pre>
+      <p><code class="inl">MemoryStore</code> here means <code class="inl">DATABASE_URL</code> did not reach the app, and every
+      run you do afterwards evaporates on restart.</p>
+    </li>
+    <li>
+      <h3>Seed one real run</h3>
+<pre>curl -X POST https://bubble-api.onrender.com/rescore \
+  -H <span class="s">"X-Admin-Key: $ADMIN_KEY"</span></pre>
+      <p>Gives the page real data and gives you a <code class="inl">run_id</code> to bookmark as the Pass 8 replay URL.</p>
+    </li>
+    <li>
+      <h3>Walk the Pass 6 checklist</h3>
+      <p>The five boxes from PLAN.md, below. Do the 20-minute idle test <em>before</em> demo day, not on it.</p>
+    </li>
+  </ol>
+
+  <!-- ================= VERIFY ================= -->
+  <h2><span class="k">07</span> Pass 6 acceptance — verbatim from PLAN.md</h2>
+  <p class="h2sub">These are your own checkboxes, each paired with the command that settles it.</p>
+
+  <div class="tblwrap"><table>
+    <thead><tr><th>PLAN.md Pass 6 checkbox</th><th>How to settle it</th><th>Pass condition</th></tr></thead>
+    <tbody>
+      <tr><td>Public URL loads on your phone; polling works; no console errors</td>
+          <td>Open the static URL on your phone; watch the network tab</td>
+          <td><code class="inl">/state</code> every 15s idle, 2s while running</td></tr>
+      <tr><td>curl rescore from laptop → live run visible on the public page</td>
+          <td><code class="inl">curl -X POST … /rescore -H "X-Admin-Key: …"</code></td>
+          <td>Page flips to <code class="inl">running</code> within 2s</td></tr>
+      <tr><td>Wrong/missing admin key → 401/403. Two rescores → 409</td>
+          <td>POST with a bad key, then two in quick succession</td>
+          <td><b>401</b> then <b>409</b> — both already verified locally</td></tr>
+      <tr><td>Wait 20+ min idle, reload → instant (no cold-spin)</td>
+          <td>Leave it, come back, hard reload</td>
+          <td>First byte fast. <b>Fails on free tier by design.</b></td></tr>
+      <tr><td>Cron fires (set a near-term schedule, then restore 6h)</td>
+          <td>Temporarily set <code class="inl">*/10 * * * *</code>, then <code class="inl">render logs</code></td>
+          <td>A <code class="inl">run.started</code> event with no human involved</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2><span class="k">08</span> Risks I can't retire from here</h2>
+  <div class="grid3">
+    <div class="card warn">
+      <div class="lbl">Memory on Starter</div>
+      <p>Starter is <b>512MB</b>. <code class="inl">yfinance</code> pulls pandas + numpy, which are heavy resident. Add
+      asyncpg's pool and FastAPI and it should fit — but if you see boot OOMs, that is the cause, not your code.</p>
+    </div>
+    <div class="card warn">
+      <div class="lbl">Rewrite destinations</div>
+      <p>The external-URL rewrite in §05 is the one unverified assumption in this plan. It is a 20-minute fallback if
+      wrong, but it is the thing most likely to surprise us on the first deploy.</p>
+    </div>
+    <div class="card warn">
+      <div class="lbl">Region pinning</div>
+      <p>Postgres and the web service <b>must share a region</b> or the internal connection string won't resolve. Pin every
+      resource explicitly rather than trusting defaults.</p>
+    </div>
+  </div>
+
+  <!-- ================= DECISIONS ================= -->
+  <h2><span class="k">09</span> Decisions</h2>
+  <p class="h2sub">Locked from your answers. Nothing below needs revisiting unless you want to change it.</p>
+  <div class="grid2">
+    <div class="card ok">
+      <div class="lbl">Locked</div>
+      <div class="kv"><span class="k2">repo</span><span class="v"><b>Private</b> GitHub repo under MohitKumar1991</span></div>
+      <div class="kv"><span class="k2">api tier</span><span class="v"><b>Starter</b> — credits available, so spin-down is not a constraint</span></div>
+      <div class="kv"><span class="k2">db</span><span class="v"><b>Postgres 16</b>, basic-256mb, same region as the API</span></div>
+      <div class="kv"><span class="k2">wiring</span><span class="v"><b>Static-site rewrites</b>, not cross-origin CORS</span></div>
+    </div>
+    <div class="card">
+      <div class="lbl">Still open — answer below</div>
+      <ul class="tight">
+        <li><b>Who executes</b> — you told me earlier I'm read-only. Steps 1–2 need edits to
+        <code class="inl">requirements.txt</code>, <code class="inl">pipeline.py</code>, and a new
+        <code class="inl">render.yaml</code>.</li>
+        <li><b>Cron timing</b> — every 6h burns You.com budget from now on. Pass 3 is live, so runs cost real money.</li>
+        <li><b>Custom domain</b> — or stay on <code class="inl">onrender.com</code> through the demo.</li>
+      </ul>
+    </div>
+  </div>
+
+  <form class="q" data-lavish-question="execute" onsubmit="event.preventDefault(); const v=new FormData(event.currentTarget).get('execute'); if(v) window.lavish.queuePrompt('Deployment execution: '+v, {tag:'decision', text:'Execute: '+v, element:event.currentTarget, data:{question:'who executes', answer:v}});">
+    <div class="lbl">1 · Who executes the deploy?</div>
+    <label><input type="radio" name="execute" value="Claude executes everything, pausing before the Dashboard steps">
+      <span><span class="ot">I execute it end to end</span><span class="od">Lifts read-only for deploy files only: requirements.txt, render.yaml, the config_version fix. I push the repo and stop at step 4, since the Blueprint must be clicked in the Dashboard anyway.</span></span></label>
+    <label><input type="radio" name="execute" value="Claude does safe prep only (repo push + files), Mohit creates all Render resources">
+      <span><span class="ot">Prep only — I keep control of Render</span><span class="od">I write the files and push the repo. You create every Render resource yourself. Nothing billable happens without you.</span></span></label>
+    <label><input type="radio" name="execute" value="Claude writes a runbook only and changes no files; Fable executes">
+      <span><span class="ot">Runbook only — Fable executes</span><span class="od">I change nothing. Best if Fable is still editing these files and you want to avoid two agents colliding.</span></span></label>
+    <button type="submit">Queue this answer</button>
+  </form>
+
+  <form class="q" data-lavish-question="cron" onsubmit="event.preventDefault(); const v=new FormData(event.currentTarget).get('cron'); if(v) window.lavish.queuePrompt('Cron decision: '+v, {tag:'decision', text:'Cron: '+v, element:event.currentTarget, data:{question:'cron timing', answer:v}});">
+    <div class="lbl">2 · Enable the 6h cron now?</div>
+    <label><input type="radio" name="cron" value="Define the cron in render.yaml but suspend it until Pass 4">
+      <span><span class="ot">Define it, leave it suspended</span><span class="od">Recommended. The resource exists and is provably wired, but spends nothing until you resume it. Pass 3 probes cost real money per run.</span></span></label>
+    <label><input type="radio" name="cron" value="Enable the 6h cron immediately">
+      <span><span class="ot">Enable it now</span><span class="od">Live data accumulates from today, which helps the CMI window-over-window deltas Pass 5 needs. Costs You.com budget every 6h.</span></span></label>
+    <label><input type="radio" name="cron" value="Skip the cron entirely; rescore manually for the demo">
+      <span><span class="ot">Skip it — manual rescore only</span><span class="od">Cheapest. You lose the "it runs itself" story and the Pass 6 cron checkbox.</span></span></label>
+    <button type="submit">Queue this answer</button>
+  </form>
+
+  <form class="q" data-lavish-question="domain" onsubmit="event.preventDefault(); const v=new FormData(event.currentTarget).get('domain'); if(v) window.lavish.queuePrompt('Domain decision: '+v, {tag:'decision', text:'Domain: '+v, element:event.currentTarget, data:{question:'custom domain', answer:v}});">
+    <div class="lbl">3 · Custom domain?</div>
+    <label><input type="radio" name="domain" value="Stay on onrender.com through the demo">
+      <span><span class="ot">Stay on onrender.com</span><span class="od">Recommended for now. One less DNS variable before demo day; you can always add a domain later without redeploying.</span></span></label>
+    <label><input type="radio" name="domain" value="Point a custom domain now — I will say which">
+      <span><span class="ot">Point a custom domain now</span><span class="od">Looks better on stage. Needs DNS records and a cert, so do it well before the demo, never the morning of.</span></span></label>
+    <button type="submit">Queue this answer</button>
+  </form>
+
+  <div class="foot">
+    Verified against HEAD <code class="inl">b3b13af</code> (Pass 3) · Render CLI v2.22.0 · every blocker cites a file:line or command ·
+    the single unverified claim is flagged in §05 and §08.
+  </div>
+
+</div>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
+  const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const paint = document.createElement("canvas").getContext("2d");
+  function toRgba(color){paint.clearRect(0,0,1,1);paint.fillStyle="#000";paint.fillStyle=color;paint.fillRect(0,0,1,1);return paint.getImageData(0,0,1,1).data;}
+  function compositeRgba(f,b){const fa=f[3]/255,ba=b[3]/255,a=fa+ba*(1-fa);if(a===0)return[0,0,0,0];
+    return[(f[0]*fa+b[0]*ba*(1-fa))/a,(f[1]*fa+b[1]*ba*(1-fa))/a,(f[2]*fa+b[2]*ba*(1-fa))/a,a*255];}
+  function pageIsDark(){const root=document.documentElement;const rb=toRgba(getComputedStyle(root).backgroundColor);
+    const bb=document.body?toRgba(getComputedStyle(document.body).backgroundColor):[0,0,0,0];
+    const [r,g,b,a]=compositeRgba(bb,rb);
+    if(a>0)return (0.2126*r+0.7152*g+0.0722*b)/255<0.5;
+    const cs=getComputedStyle(root).colorScheme;
+    if(cs.includes("dark")&&!cs.includes("light"))return true;
+    if(cs.includes("light")&&!cs.includes("dark"))return false;
+    return darkQuery.matches;}
+  const diagrams=[...document.querySelectorAll(".mermaid")].map((el)=>({el,src:el.textContent}));
+  let applied,rendering=false,queued=false;
+  function queueRender(){queued=true;if(rendering)return;void render();}
+  async function render(){rendering=true;try{while(queued){queued=false;
+    const theme=pageIsDark()?"dark":"default";if(theme===applied)continue;
+    mermaid.initialize({startOnLoad:false,theme,securityLevel:"strict"});
+    for(const {el,src} of diagrams){el.removeAttribute("data-processed");el.textContent=src;}
+    try{await mermaid.run({nodes:diagrams.map(d=>d.el)});}catch(e){console.error("Mermaid render failed:",e);return;}
+    applied=theme;}}finally{rendering=false;if(queued)queueRender();}}
+  if(document.readyState==="complete")queueRender();
+  else window.addEventListener("load",queueRender,{once:true});
+  const mo=new MutationObserver(queueRender);
+  for(const el of [document.documentElement,document.body]){if(!el)continue;
+    mo.observe(el,{attributes:true,attributeFilter:["data-theme","class","style"]});}
+  document.addEventListener("change",queueRender,true);
+  document.addEventListener("transitionend",({propertyName})=>{if(propertyName==="background-color")queueRender();},true);
+  darkQuery.addEventListener("change",queueRender);
+</script>
+</body>
+</html>

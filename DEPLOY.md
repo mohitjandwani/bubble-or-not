@@ -18,19 +18,32 @@ Apply it **once, by hand**, in step 5 below. Then never again.
 
 ---
 
-## Prerequisite — payment info
+## Prerequisites
 
-`render blueprints validate` currently returns `need_payment_info` for the Postgres database and the
-Starter web service. Credits do not remove this: Render requires a payment method on file before it
-will provision any paid resource.
+Running `render blueprints validate ./render.yaml` today returns two expected errors. Both are account
+state, not blueprint bugs — the YAML itself is confirmed valid.
 
-> **Do this first:** Render Dashboard → **Billing** → add a payment method, and confirm your credits are
-> applied to workspace *Mohit Jandwani's Workspace* (`tea-cspvlbogph6c73ftadg0`).
+**1. `need_payment_info`** (on `databases[0]` and `services[0]`)
 
-Nothing below works until that check passes:
+Credits do not remove this: Render requires a payment method on file before provisioning any paid
+resource.
+
+> Render Dashboard → **Billing** → add a payment method, and confirm your credits are applied to
+> workspace *Mohit Jandwani's Workspace* (`tea-cspvlbogph6c73ftadg0`).
+
+**2. `branch main could not be found`**
+
+`main` *does* exist on GitHub — Render simply cannot see it yet, because its GitHub App has not been
+granted access to a private repo. This clears itself during step 2 when you connect the repo. Do not
+chase it before then.
+
+> If it persists after step 2: GitHub → **Settings → Applications → Render** → grant access to
+> `bubble-or-not`.
+
+Both cleared when this prints `"valid": true`:
 
 ```bash
-render blueprints validate ./render.yaml   # must print "valid": true
+render blueprints validate ./render.yaml
 ```
 
 Starter is not optional — PLAN.md §10 flags free-tier spin-down as a demo-day gotcha, and Pass 6's own
@@ -46,7 +59,8 @@ checklist tests *"wait 20+ min idle, reload → instant"*. Only a paid instance 
 render blueprints validate ./render.yaml
 ```
 
-Fix any error before spending a deploy. This is free and instant.
+Free and instant. Expect the two Prerequisite errors until billing is set up and Render can see the repo;
+anything *else* should be fixed before spending a deploy.
 
 ### 2. Create the Blueprint  ⚠️ Dashboard only
 

@@ -8,6 +8,7 @@ event_strength:
   order_cancellation: strong
   covenant_issue: strong
   auditor_change: strong
+  revenue_definition_change: strong
   analyst_estimate_cut: weak
   price_target_cut: weak
   gpu_spot_drift: weak

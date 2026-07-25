@@ -20,7 +20,7 @@
         "time_to_tightening_d": 112,
         "real_rate_pct": 1.9
       },
-      "cost": 0.15,
+      "cost": 0.02,
       "as_of": "2026-07-24T09:30:00Z"
     },
     {
@@ -34,7 +34,7 @@
         "guidance_tone": 6.4,
         "misses_last_q": 1
       },
-      "cost": 0.15,
+      "cost": 0.9,
       "as_of": "2026-07-24T09:30:00Z"
     },
     {
@@ -52,7 +52,7 @@
           "anthropic": 0.71
         }
       },
-      "cost": 0.15,
+      "cost": 0.7,
       "as_of": "2026-07-24T09:30:00Z"
     },
     {
@@ -63,7 +63,7 @@
         "mega_sale_count_90d": 3,
         "sell_buy_ratio_vs_median": 2.1
       },
-      "cost": 0.15,
+      "cost": 0.22,
       "as_of": "2026-07-24T09:30:00Z"
     },
     {
@@ -76,7 +76,7 @@
         "pct_above_200dma": 48.0,
         "tnx_yield": 4.7
       },
-      "cost": 0.15,
+      "cost": 0.0,
       "as_of": "2026-07-24T09:30:00Z"
     },
     {
@@ -88,7 +88,7 @@
         "baseline_1999": 0.47,
         "articles_sampled": 50
       },
-      "cost": 0.15,
+      "cost": 0.06,
       "as_of": "2026-07-24T09:30:00Z"
     }
   ],
@@ -106,8 +106,8 @@
       "stage": "early",
       "threshold_text": "fires when implied 12m path steepness > +100bp",
       "k_weak": 3,
-      "precedent_1999": "Jun-99 first hike; by Feb-00 the path priced +125bp/12m",
-      "precedent_citation_url": null,
+      "precedent_1999": "The Fed began a 1999-06 tightening cycle, lifting rates six times by 2000-05 from 4.75% to 6.50%.",
+      "precedent_citation_url": "https://www.federalreserve.gov/monetarypolicy/files/FOMC19990630meeting.pdf",
       "current_reading": "Implied path +85bp/12m — steepening, below trigger",
       "current_source_url": "https://example.com/fixture",
       "confidence": "high",
@@ -126,8 +126,8 @@
       "stage": "early",
       "threshold_text": "fires when rhetoric delta (last 5 vs prior 5 speeches) > +0.4",
       "k_weak": 3,
-      "precedent_1999": "Greenspan 'irrational exuberance' posture hardened through H2-99",
-      "precedent_citation_url": null,
+      "precedent_1999": "In 2000-02, Greenspan told Congress the economy had excess demand and booming stock prices were a culprit.",
+      "precedent_citation_url": "https://www.richmondfed.org/publications/research/econ_focus/2023/q1_federal_reserve",
       "current_reading": "Rhetoric delta +0.30 — hawkish drift across last 5 speeches",
       "current_source_url": "https://example.com/fixture",
       "confidence": "medium",
@@ -146,8 +146,8 @@
       "stage": "mid",
       "threshold_text": "fires when median bellwether NTM revision < 0 for 2 consecutive checks",
       "k_weak": 3,
-      "precedent_1999": "Revisions for the CSCO/NT complex decelerated ~2 quarters pre-peak",
-      "precedent_citation_url": null,
+      "precedent_1999": "Intel warned on 2000-09-22 that Q3 sales would miss forecasts, signaling a broad tech earnings slowdown.",
+      "precedent_citation_url": "https://www.latimes.com/archives/la-xpm-2000-sep-22-fi-24926-story.html",
       "current_reading": "Median bellwether NTM revision +1.8% — still positive",
       "current_source_url": "https://example.com/fixture",
       "confidence": "high",
@@ -166,8 +166,8 @@
       "stage": "late",
       "threshold_text": "fires on any strong event: guidance cut/withdrawn or reported miss vs own guidance",
       "k_weak": 3,
-      "precedent_1999": "Mar-00 onward: serial guidance walk-backs across infrastructure vendors",
-      "precedent_citation_url": null,
+      "precedent_1999": "Intel cut its 3Q sales outlook in 2000-09, and the news sparked a global tech sell-off.",
+      "precedent_citation_url": "https://www.nytimes.com/2000/09/23/news/intel-warning-sparks-world-selloff.html",
       "current_reading": "No cuts or withdrawals in the universe this quarter",
       "current_source_url": "https://example.com/fixture",
       "confidence": "medium",
@@ -186,8 +186,8 @@
       "stage": "mid",
       "threshold_text": "fires when H100/B200 spot 30d change < -15% (median of sources)",
       "k_weak": 3,
-      "precedent_1999": "No physical-capacity proxy existed; nearest analog was router/DRAM channel pricing",
-      "precedent_citation_url": null,
+      "precedent_1999": "In 2001-06, IDC said DRAM sales would fall 45.7% to $15.7B from $28.9B as prices collapsed.",
+      "precedent_citation_url": "https://www.theregister.com/2001/06/26/dram_sales_to_plummet/",
       "current_reading": "H100 spot -9% over 30d — drifting, above trigger",
       "current_source_url": "https://example.com/fixture",
       "confidence": "low",
@@ -206,8 +206,8 @@
       "stage": "early",
       "threshold_text": "fires when S1-Q4 destruction >= threshold for 2 consecutive weeks",
       "k_weak": 3,
-      "precedent_1999": "Dot-com ad-revenue dependents began failing quarters before infrastructure cracked",
-      "precedent_citation_url": null,
+      "precedent_1999": "Exodus Communications filed Chapter 11 in 2001-09 after losing customers in the collapsing internet economy.",
+      "precedent_citation_url": "https://www.latimes.com/archives/la-xpm-2001-sep-27-fi-50296-story.html",
       "current_reading": "Startup shutdown mentions up 2 consecutive weeks — cluster forming",
       "current_source_url": "https://example.com/fixture",
       "confidence": "medium",
@@ -226,8 +226,8 @@
       "stage": "mid",
       "threshold_text": "fires on any S1-B1 drift event (metric redefinition in official/press statements)",
       "k_weak": 2,
-      "precedent_1999": "Barter/ad-swap 'revenue' at portals; pro-forma metrics displacing GAAP",
-      "precedent_citation_url": null,
+      "precedent_1999": "Exodus filed Chapter 11 in 2001-09, a concrete dot-com-era example of business-model and revenue-overbuild drift.",
+      "precedent_citation_url": "https://www.latimes.com/archives/la-xpm-2001-sep-27-fi-50296-story.html",
       "current_reading": "One lab shifted 'ARR' definition to include committed contracts",
       "current_source_url": "https://example.com/fixture",
       "confidence": "high",
@@ -246,8 +246,8 @@
       "stage": "mid",
       "threshold_text": "fires when Circularity Ratio >= 1% of assets OR Revenue Quality score <= 0.6",
       "k_weak": 3,
-      "precedent_1999": "Lucent/Nortel/Cisco vendor financing peaked ≈$15-25B, CR ≈ 2-3%",
-      "precedent_citation_url": null,
+      "precedent_1999": "By 2002-01, the SEC warned that pro forma earnings could mislead investors by obscuring GAAP results.",
+      "precedent_citation_url": "https://www.cnet.com/tech/tech-industry/behind-pro-forma-earnings/",
       "current_reading": "Circularity Ratio 1.4% of assets — inside the 1999 band",
       "current_source_url": "https://example.com/fixture",
       "confidence": "medium",
@@ -266,8 +266,8 @@
       "stage": "late",
       "threshold_text": "fires on any strong S2-Q5/S2-B1 event touching a registry edge",
       "k_weak": 2,
-      "precedent_1999": "Vendor-financed carriers defaulted, forcing Lucent/Nortel writedowns",
-      "precedent_citation_url": null,
+      "precedent_1999": "Exodus hit bankruptcy fears in 2001-09 as its customers and network partners were pulled into the telecom collapse.",
+      "precedent_citation_url": "https://www.nytimes.com/2001/09/26/business/technology-exodus-communications-hit-by-bankruptcy-fears.html",
       "current_reading": "No canceled or renegotiated registry-edge orders this window",
       "current_source_url": "https://example.com/fixture",
       "confidence": "high",
@@ -286,8 +286,8 @@
       "stage": "late",
       "threshold_text": "fires when >$100M single-insider sale programs (90d) >= 4",
       "k_weak": 3,
-      "precedent_1999": "Insider selling ran ≈3-4x historical norm through H2-99",
-      "precedent_citation_url": null,
+      "precedent_1999": "By mid-2000, insiders at failed telecom names had sold hundreds of millions of dollars of stock before the crash.",
+      "precedent_citation_url": "https://www.chicagotribune.com/2002/06/23/insiders-sell-as-failure-looms-2/",
       "current_reading": "3 mega-sale programs in 90d — below the 4-program trigger",
       "current_source_url": "https://example.com/fixture",
       "confidence": "low",
@@ -306,8 +306,8 @@
       "stage": "early",
       "threshold_text": "fires when top-10 S&P weight > 38%",
       "k_weak": 3,
-      "precedent_1999": "Top-10 weight peaked ≈27% in Mar-00 — today already exceeds it",
-      "precedent_citation_url": null,
+      "precedent_1999": "By 2000-12, the S&P 500's top 10 stocks had reached about 23% weight, near the dot-com-era concentration peak.",
+      "precedent_citation_url": "https://www.rbcwealthmanagement.com/en-asia/insights/the-great-narrowing-sp-500-concentration",
       "current_reading": "Top-10 weight 39.4% — above trigger, far above 1999 peak",
       "current_source_url": "https://example.com/fixture",
       "confidence": "high",
@@ -326,8 +326,8 @@
       "stage": "mid",
       "threshold_text": "fires when SPY-RSP 6m gap > 8pp AND %>200dma < 45%",
       "k_weak": 3,
-      "precedent_1999": "NYSE breadth negative from Apr-98 while the index made highs into Mar-00",
-      "precedent_citation_url": null,
+      "precedent_1999": "In 2000, the market's narrow leadership reversed after the dot-com peak, and the S&P 500 fell into a long lost decade.",
+      "precedent_citation_url": "https://www.morganstanley.com/im/publication/insights/articles/article_stockmarketconcentration.pdf",
       "current_reading": "Not measurable from allowed sources",
       "current_source_url": "https://example.com/fixture",
       "confidence": "low",
@@ -2461,7 +2461,155 @@
         "citation_url": null
       }
     ],
-    "peak_date_1999": "2000-03-10"
+    "peak_date_1999": "2000-03-10",
+    "rates_1999": [
+      {
+        "t": "1999-06-01",
+        "v": 0.25
+      },
+      {
+        "t": "1999-07-01",
+        "v": 0.5
+      },
+      {
+        "t": "1999-08-01",
+        "v": 0.75
+      },
+      {
+        "t": "1999-09-01",
+        "v": 1.0
+      },
+      {
+        "t": "1999-10-01",
+        "v": 1.25
+      },
+      {
+        "t": "1999-11-01",
+        "v": 1.5
+      },
+      {
+        "t": "1999-12-01",
+        "v": 1.75
+      },
+      {
+        "t": "2000-01-01",
+        "v": 2.0
+      },
+      {
+        "t": "2000-02-01",
+        "v": 2.25
+      },
+      {
+        "t": "2000-03-01",
+        "v": 2.5
+      },
+      {
+        "t": "2000-04-01",
+        "v": 2.5
+      },
+      {
+        "t": "2000-05-01",
+        "v": 2.5
+      },
+      {
+        "t": "2000-06-01",
+        "v": 2.5
+      }
+    ],
+    "rates_now": [
+      {
+        "t": "2024-09-01",
+        "v": -0.25
+      },
+      {
+        "t": "2024-10-01",
+        "v": -0.5
+      },
+      {
+        "t": "2024-11-01",
+        "v": -0.75
+      },
+      {
+        "t": "2024-12-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-01-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-02-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-03-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-04-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-05-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-06-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-07-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-08-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-09-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-10-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-11-01",
+        "v": -1.0
+      },
+      {
+        "t": "2025-12-01",
+        "v": -1.0
+      },
+      {
+        "t": "2026-01-01",
+        "v": -1.37
+      },
+      {
+        "t": "2026-02-01",
+        "v": -1.37
+      },
+      {
+        "t": "2026-03-01",
+        "v": -1.37
+      },
+      {
+        "t": "2026-04-01",
+        "v": -1.37
+      },
+      {
+        "t": "2026-05-01",
+        "v": -1.37
+      },
+      {
+        "t": "2026-06-01",
+        "v": -1.37
+      },
+      {
+        "t": "2026-07-01",
+        "v": -1.37
+      }
+    ]
   },
   "thermometer": {
     "density": 0.31,
@@ -2482,6 +2630,175 @@
         "text": "can't-lose trade",
         "count": 6,
         "url": "https://example.com/c"
+      }
+    ]
+  },
+  "f3": {
+    "cmi_stage1": [
+      {
+        "t": "2026-06-05",
+        "v": 0.3
+      },
+      {
+        "t": "2026-06-12",
+        "v": 0.1
+      },
+      {
+        "t": "2026-06-19",
+        "v": -0.1
+      },
+      {
+        "t": "2026-06-26",
+        "v": -0.2
+      },
+      {
+        "t": "2026-07-03",
+        "v": -0.25
+      },
+      {
+        "t": "2026-07-10",
+        "v": -0.2
+      }
+    ],
+    "cmi_stage2": [
+      {
+        "t": "2026-04-30",
+        "v": 0.5
+      },
+      {
+        "t": "2026-05-31",
+        "v": 0.7
+      },
+      {
+        "t": "2026-06-30",
+        "v": 0.6
+      }
+    ],
+    "prebreak": true,
+    "circularity_ratio_pct": 1.4,
+    "waterfalls": {
+      "OpenAI": [
+        {
+          "label": "Reported ARR",
+          "kind": "reported",
+          "value_low": 20.0,
+          "value_high": 20.0,
+          "citation_url": "https://example.com/fixture",
+          "note": null
+        },
+        {
+          "label": "Portfolio-customer revenue",
+          "kind": "deduction",
+          "value_low": 1.2,
+          "value_high": 2.0,
+          "citation_url": "https://example.com/fixture",
+          "note": null
+        },
+        {
+          "label": "Credit-cohort inflation",
+          "kind": "deduction",
+          "value_low": 0.8,
+          "value_high": 1.6,
+          "citation_url": "https://example.com/fixture",
+          "note": "not GAAP revenue"
+        },
+        {
+          "label": "Committed-not-recognized",
+          "kind": "deduction",
+          "value_low": 1.0,
+          "value_high": 3.0,
+          "citation_url": "https://example.com/fixture",
+          "note": null
+        },
+        {
+          "label": "Cash-quality band",
+          "kind": "result",
+          "value_low": 13.4,
+          "value_high": 17.0,
+          "citation_url": null,
+          "note": null
+        }
+      ],
+      "Anthropic": [
+        {
+          "label": "Reported ARR",
+          "kind": "reported",
+          "value_low": 14.0,
+          "value_high": 14.0,
+          "citation_url": "https://example.com/fixture",
+          "note": null
+        },
+        {
+          "label": "Portfolio-customer revenue",
+          "kind": "deduction",
+          "value_low": 0.5,
+          "value_high": 1.0,
+          "citation_url": "https://example.com/fixture",
+          "note": null
+        },
+        {
+          "label": "Credit-cohort inflation",
+          "kind": "deduction",
+          "value_low": 0.4,
+          "value_high": 0.9,
+          "citation_url": "https://example.com/fixture",
+          "note": "not GAAP revenue"
+        },
+        {
+          "label": "Committed-not-recognized",
+          "kind": "deduction",
+          "value_low": 0.5,
+          "value_high": 1.5,
+          "citation_url": "https://example.com/fixture",
+          "note": null
+        },
+        {
+          "label": "Cash-quality band",
+          "kind": "result",
+          "value_low": 10.6,
+          "value_high": 12.6,
+          "citation_url": null,
+          "note": null
+        }
+      ]
+    },
+    "revenue_quality": {
+      "OpenAI": 0.76,
+      "Anthropic": 0.83
+    },
+    "edges": [
+      {
+        "edge_id": "e-nvda-crwv",
+        "from_entity": "NVIDIA",
+        "to_entity": "CoreWeave",
+        "archetype": "A",
+        "amount_usd_m": 6300.0,
+        "announced_date": "2025-03-01",
+        "status": "verified",
+        "seed_source_url": "https://example.com/fixture",
+        "note": null
+      },
+      {
+        "edge_id": "e-msft-oai",
+        "from_entity": "Microsoft",
+        "to_entity": "OpenAI",
+        "archetype": "C",
+        "amount_usd_m": 13000.0,
+        "announced_date": "2023-01-23",
+        "status": "verified",
+        "seed_source_url": "https://example.com/fixture",
+        "note": null
+      },
+      {
+        "edge_id": "e-oaifund-x",
+        "from_entity": "OpenAI Startup Fund",
+        "to_entity": "Harvey",
+        "archetype": "F",
+        "amount_usd_m": 80.0,
+        "announced_date": "2025-11-01",
+        "status": "announced_only",
+        "seed_source_url": "https://example.com/fixture",
+        "note": null
       }
     ]
   },
