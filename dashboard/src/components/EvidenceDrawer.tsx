@@ -63,7 +63,7 @@ export default function EvidenceDrawer({ signature, f3 }: { signature: Signature
         <td>
           {r.source_url && (
             <a className="source-chip" href={r.source_url} target="_blank" rel="noreferrer">
-              source
+              source ↗
             </a>
           )}
         </td>

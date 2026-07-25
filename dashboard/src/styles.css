@@ -217,7 +217,7 @@ a {
 
 /* ---------- generic section ---------- */
 section.block {
-  margin-top: 36px;
+  margin-top: 28px;
 }
 
 .section-title {
@@ -409,6 +409,44 @@ section.block {
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+.pin-fall-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pin-fall 220ms ease-out;
+}
+
+@keyframes pin-fall {
+  0% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.spark-append {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spark-append 900ms ease-out;
+}
+
+@keyframes spark-append {
+  0% {
+    r: 2;
+    opacity: 1;
+  }
+  40% {
+    r: 5;
+    opacity: 0.5;
+  }
+  100% {
+    r: 2;
+    opacity: 1;
   }
 }
 
@@ -700,6 +738,12 @@ table.evidence-table tr.dimmed {
   padding: 1px 7px;
   color: var(--cyan);
   text-decoration: none;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.source-chip:hover {
+  border-color: var(--cyan);
+  color: var(--text);
 }
 
 .provenance-line {

@@ -7,6 +7,7 @@ export default function SectionF({ state }: { state: StatePayload }) {
       <div>
         <a href="#">Methodology</a>
         <a href="#">Built on You.com Research APIs</a>
+        <a href="#">GitHub ↗</a>
       </div>
       <div className="tnum">
         {state.evidence_count} evidence objects · {state.citation_count} citations · last full run{" "}

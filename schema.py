@@ -210,8 +210,11 @@ def stage_sentence(signatures: list[SignatureState]) -> tuple[str, int]:
         sent = "No 1999-style triggers have fired. Conditions do not resemble a late-stage bubble."
     elif buckets == {"early"}:
         sent = "Conditions resemble early-stage 1999. Mid- and late-stage triggers have not fired."
-    elif "late" in buckets and {"early", "mid"} & buckets:
+    elif buckets == {"early", "mid", "late"}:
         sent = "Conditions resemble late-stage 1999. Early-, mid- and late-stage triggers are all firing."
+    elif "late" in buckets and "early" in buckets:
+        sent = ("Early- and late-stage triggers are firing while the mid-stage bridge — "
+                "estimate cuts, revenue-quality cracks — has not confirmed.")
     elif "late" in buckets:
         sent = "Late-stage triggers are firing without the usual early-stage buildup — an atypical pattern."
     elif "mid" in buckets:

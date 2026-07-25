@@ -1,12 +1,12 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { HeroSeries, SeriesPoint, SignaturePin } from "../types";
 import { cx, scrollToAndFlash } from "../util";
 import HoverTip from "./HoverTip";
 
 const W = 1140;
-const H = 336;
-const PAD_TOP = 20;
-const PAD_BOTTOM = 20;
+const H = 288;
+const PAD_TOP = 16;
+const PAD_BOTTOM = 16;
 const TOTAL_H = H + PAD_TOP + PAD_BOTTOM;
 
 type Pt = [number, number];
@@ -142,9 +142,9 @@ function yearTicks(range: [number, number], startYear: number, endYear: number):
   return ticks;
 }
 
-function trianglePath(cx: number, cy: number, size: number): string {
-  // Downward-pointing pin (▼), tip sits at (cx, cy) on the line.
-  return `M ${cx - size},${cy - size * 2} L ${cx + size},${cy - size * 2} L ${cx},${cy} Z`;
+function trianglePath(px: number, py: number, size: number): string {
+  // Downward-pointing pin (▼), tip sits at (px, py) on the line.
+  return `M ${px - size},${py - size * 2} L ${px + size},${py - size * 2} L ${px},${py} Z`;
 }
 
 export default function SectionB({ hero }: { hero: HeroSeries }) {
@@ -152,6 +152,25 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverPhase, setHoverPhase] = useState<number | null>(null);
   const [pinTip, setPinTip] = useState<{ x: number; y: number; content: React.ReactNode } | null>(null);
+
+  // Rescore choreography: a signature that just fired gets a 200ms fall-in on
+  // its new pin. Skipped on first mount so the initial page load stays calm.
+  const prevPinsNowIdsRef = useRef<Set<string> | null>(null);
+  const [fallingIn, setFallingIn] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const currentIds = new Set(hero.pins_now.map((p) => p.signature_id));
+    const prev = prevPinsNowIdsRef.current;
+    if (prev) {
+      const newIds = [...currentIds].filter((id) => !prev.has(id));
+      if (newIds.length > 0) {
+        setFallingIn(new Set(newIds));
+        const t = setTimeout(() => setFallingIn(new Set()), 260);
+        prevPinsNowIdsRef.current = currentIds;
+        return () => clearTimeout(t);
+      }
+    }
+    prevPinsNowIdsRef.current = currentIds;
+  }, [hero.pins_now]);
 
   const era1999 = useMemo(() => sortByDate(hero.era_1999), [hero.era_1999]);
   const eraNow = useMemo(() => sortByDate(hero.era_now), [hero.era_now]);
@@ -279,9 +298,11 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
   function renderPin(sp: StackedPin, color: string, isNowLine: boolean) {
     const y = sp.y - 4 - sp.level * 4;
     const opacity = sp.ghost ? 0.35 : 1;
+    const isNew = isNowLine && !sp.ghost && fallingIn.has(sp.pin.signature_id);
     return (
       <path
         key={`${isNowLine ? "now" : "1999"}-${sp.pin.signature_id}`}
+        className={cx(isNew && "pin-fall-in")}
         d={trianglePath(sp.x, y, 5)}
         fill={color}
         opacity={opacity}
