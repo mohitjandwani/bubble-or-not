@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { fetchEvidenceWithFallback } from "../api";
 import type { Evidence, F3Exhibit, SignatureState } from "../types";
 import { confidenceColor } from "../constants";
@@ -46,8 +46,8 @@ export default function EvidenceDrawer({ signature, f3 }: { signature: Signature
   const hasConflict = [...byMetric.values()].some((s) => s.size > 1);
 
   const renderRow = (r: Evidence, dimmed: boolean) => (
-    <>
-      <tr key={r.evidence_id} className={dimmed ? "dimmed" : undefined}>
+    <Fragment key={r.evidence_id}>
+      <tr className={dimmed ? "dimmed" : undefined}>
         <td>{r.metric}</td>
         <td className="tnum">{r.value ?? "—"}</td>
         <td>{r.unit ?? ""}</td>
@@ -76,7 +76,7 @@ export default function EvidenceDrawer({ signature, f3 }: { signature: Signature
           </td>
         </tr>
       )}
-    </>
+    </Fragment>
   );
 
   return (
