@@ -28,10 +28,26 @@ import asyncpg  # noqa: E402
 API = os.environ.get("EVAL_API", "http://localhost:8000")
 
 
-async def trigger_runs(n: int) -> None:
+PROTECTED_CACHE = ("probe_id NOT LIKE 'F3-baseline%' AND probe_id NOT LIKE 'F3-CMI%' "
+                   "AND probe_id != 'F3-churn-accel'")
+
+
+async def clear_probe_cache() -> None:
+    """Clear probe caches for an independent pull — but NEVER the cold-start
+    baselines or CMI history (truncating those silently nulls CMI; learned
+    the hard way)."""
+    con = await asyncpg.connect(os.environ["DATABASE_URL"])
+    n = await con.execute(f"DELETE FROM probe_cache WHERE {PROTECTED_CACHE}")
+    await con.close()
+    print(f"  cache cleared ({n}), baselines/history preserved")
+
+
+async def trigger_runs(n: int, fresh: bool = False) -> None:
     ak = os.environ["ADMIN_KEY"]
     async with httpx.AsyncClient(timeout=30) as cli:
         for i in range(n):
+            if fresh:
+                await clear_probe_cache()
             r = await cli.post(f"{API}/rescore", headers={"X-Admin-Key": ak})
             run_id = r.json().get("run_id")
             print(f"run {i+1}/{n}: {run_id}", flush=True)
@@ -94,8 +110,8 @@ async def analyze(sample_n: int = 10) -> str:
         lines.append(f"  - `{st}` {'✓' if cl else '·'} {url}")
 
     stats = await con.fetch("""
-        SELECT detail->'extract_stats' AS st FROM run_events
-        WHERE detail ? 'extract_stats' AND run_id IN
+        SELECT coalesce(detail->'extract_stats', detail->'stats') AS st FROM run_events
+        WHERE (detail ? 'extract_stats' OR detail ? 'stats') AND run_id IN
           (SELECT run_id FROM runs WHERE status='done' ORDER BY started_at DESC LIMIT 3)""")
     tot = {"blocks": 0, "regex_ok": 0, "haiku_rescued": 0, "failed": 0}
     for r in stats:
@@ -111,10 +127,10 @@ async def analyze(sample_n: int = 10) -> str:
 
     costs = await con.fetch("""
         SELECT factor, round(sum(cost)::numeric,3) AS usd FROM run_events
-        WHERE cost > 0 AND run_id = (SELECT run_id FROM runs WHERE status='done'
-                                     AND run_id LIKE 'run-%' ORDER BY started_at DESC LIMIT 1)
+        WHERE cost > 0 AND run_id IN (SELECT run_id FROM runs WHERE status='done'
+                                      AND run_id LIKE 'run-%' ORDER BY started_at DESC LIMIT 3)
         GROUP BY factor ORDER BY usd DESC""")
-    lines += ["", "## Cost per factor (latest run, uncached portions)", "",
+    lines += ["", "## Cost per factor (last 3 runs, uncached portions)", "",
               "| factor | $ |", "|---|---|"]
     for r in costs:
         lines.append(f"| {r['factor']} | {r['usd']} |")
@@ -128,8 +144,10 @@ async def analyze(sample_n: int = 10) -> str:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=int, default=0)
+    ap.add_argument("--fresh", action="store_true",
+                    help="clear probe caches before EACH run (independent pulls; spends budget)")
     args = ap.parse_args()
     if args.runs:
-        asyncio.run(trigger_runs(args.runs))
+        asyncio.run(trigger_runs(args.runs, fresh=args.fresh))
         time.sleep(2)
     print(asyncio.run(analyze()))
