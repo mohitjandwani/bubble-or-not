@@ -51,6 +51,21 @@ class MemoryStore:
     async def has_runs(self) -> bool:
         return bool(self.states)
 
+    async def cache_get(self, probe_id: str, window: str, ttl_hours: float):
+        hit = getattr(self, "_cache", {}).get((probe_id, window))
+        if not hit:
+            return None
+        fetched_at, payload = hit
+        from datetime import datetime, timezone
+        age_h = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 3600
+        return payload if age_h <= ttl_hours else None
+
+    async def cache_put(self, probe_id: str, window: str, payload: dict) -> None:
+        from datetime import datetime, timezone
+        if not hasattr(self, "_cache"):
+            self._cache = {}
+        self._cache[(probe_id, window)] = (datetime.now(timezone.utc), payload)
+
 
 STORE = MemoryStore()  # api.py may replace with PGStore at startup
 

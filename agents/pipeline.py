@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import random
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,12 +16,19 @@ from pathlib import Path
 from schema import (Evidence, RunEvent, SeriesPoint, StatePayload,
                     compute_bti, stage_sentence)
 from agents import store as store_mod
+from agents import youcom
+from agents.f2 import B1_STRONG_INPUT, B2_WEAK_INPUT, run_binary_probe, run_tone_probe
 from agents.quant import compute_quant
 
 ROOT = Path(__file__).resolve().parents[1]
 BENCH = ROOT / "data" / "benchmarks"
 
-FAKE_FACTORS = ["f2", "f3", "f4", "f6"]
+
+def _mock() -> bool:
+    return os.environ.get("MOCK", "0") == "1"
+
+
+FAKE_FACTORS = ["f3", "f4", "f6"]  # + f2 when MOCK=1 (see run_pipeline)
 FAKE_ENDPOINT = {"f2": "finance_research", "f3": "research", "f4": "finance_research", "f6": "search"}
 FAKE_COST = {"f2": 0.11, "f3": 0.05, "f4": 0.11, "f6": 0.01}
 FACTOR_NAMES = {"f1": "Liquidity", "f2": "Bellwethers", "f3": "Circular financing",
@@ -180,7 +188,10 @@ async def run_pipeline() -> str:
     state.updated_at = _now()
     apply_real_hero(state)
     await store_mod.STORE.put_state(state)
-    await _emit(run_id, "run.started", detail={"factors": ["f1", "f5"] + FAKE_FACTORS})
+    bal_before = None if _mock() else await youcom.balance()
+    await _emit(run_id, "run.started",
+                detail={"factors": ["f1", "f2", "f5"] + FAKE_FACTORS,
+                        "mock": _mock(), "balance_before": bal_before})
     total_cost = 0.0
 
     async def real_quant() -> None:
@@ -209,6 +220,66 @@ async def run_pipeline() -> str:
             await _emit(run_id, "agent.completed", factor=f,
                         detail={"score": fr.score, "state": fr.state})
 
+    async def real_f2() -> None:
+        """Pass 3 vertical slice: live binaries + tone through the shared chain.
+        f2's composite score stays fixture-valued until Pass 4 (revisions, GPU
+        spot, tone scoring) — state=low_coverage says so honestly."""
+        nonlocal total_cost
+        await _emit(run_id, "agent.started", factor="f2")
+        fr = next(x for x in state.factors if x.factor == "f2")
+        try:
+            b1, b2, tone = await asyncio.gather(
+                run_binary_probe(store_mod.STORE, run_id, "F2-B1", B1_STRONG_INPUT, 90),
+                run_binary_probe(store_mod.STORE, run_id, "F2-B2", B2_WEAK_INPUT, 30),
+                run_tone_probe(store_mod.STORE, run_id, "NVDA"),
+            )
+        except Exception as exc:
+            fr.state = "stale"
+            await _emit(run_id, "agent.failed", factor="f2", detail={"reason": str(exc)[:300]})
+            return
+
+        for probe_id, r in (("F2-B1", b1), ("F2-B2", b2)):
+            total_cost += r["cost"]
+            await _emit(run_id, "agent.tool_call", factor="f2", probe_id=probe_id,
+                        endpoint="research", cost=r["cost"], elapsed_ms=r["elapsed_ms"],
+                        params_summary=f"standard · schema · freshness={r['window']}",
+                        cache_hit=r["cache_hit"],
+                        detail={"answer": r["answer"], "events": len(r["events"]),
+                                "excluded_out_of_window": len(r["excluded"])})
+        total_cost += tone["cost"]
+        await _emit(run_id, "agent.tool_call", factor="f2", probe_id="F2-tone-NVDA",
+                    endpoint="finance_research", cost=tone["cost"],
+                    elapsed_ms=tone["elapsed_ms"], cache_hit=tone["cache_hit"],
+                    params_summary="deep · FINDING template",
+                    detail={"extract_stats": tone["stats"],
+                            "raw_md_head": tone["raw_md_head"]})
+
+        rows = b1["evidence"] + b2["evidence"] + tone["evidence"]
+        await store_mod.STORE.put_evidence(run_id, rows)
+        await _emit(run_id, "agent.evidence", factor="f2", detail={"count": len(rows)})
+
+        strong, weak = b1["strong"] + b2["strong"], b1["weak"] + b2["weak"]
+        for sig in state.signatures:
+            if sig.signature_id == "sig-f2-guidance":
+                sig.strong_count, sig.weak_count = strong, weak
+                _relamp(sig)
+                sig.confidence = "high" if strong else ("medium" if weak else "high")
+                sig.current_reading = (
+                    f"{strong} strong / {weak} weak signal events in window" if (strong or weak)
+                    else "No guidance cuts or misses found in the universe this window")
+                if rows:
+                    sig.current_source_url = rows[0].source_url
+                sig.driving_evidence_ids = [e.evidence_id for e in b1["evidence"] + b2["evidence"]]
+        fr.state = "low_coverage"
+        fr.as_of = _now()
+        fr.cost = round(b1["cost"] + b2["cost"] + tone["cost"], 4)
+        fr.sub_metrics = {**fr.sub_metrics,
+                          "binary_strong_events": strong, "binary_weak_events": weak,
+                          "tone_findings": tone["stats"]}
+        await _emit(run_id, "agent.completed", factor="f2",
+                    detail={"score": fr.score, "state": fr.state,
+                            "strong": strong, "weak": weak})
+
     async def fake_factor(f: str) -> None:
         nonlocal total_cost
         await asyncio.sleep(rng.uniform(0.5, 4.0))
@@ -228,7 +299,9 @@ async def run_pipeline() -> str:
             fr.as_of = _now()
         await _emit(run_id, "agent.completed", factor=f, detail={"score": fr.score, "state": fr.state})
 
-    await asyncio.gather(real_quant(), *(fake_factor(f) for f in FAKE_FACTORS))
+    f2_task = fake_factor("f2") if _mock() else real_f2()
+    await asyncio.gather(real_quant(), f2_task,
+                         *(fake_factor(f) for f in FAKE_FACTORS))
 
     # fake lamp churn only on fake factors' signatures
     changed: list[str] = []
@@ -257,6 +330,8 @@ async def run_pipeline() -> str:
         for r in fixture_rows if r.factor in FAKE_FACTORS
     ])
     await store_mod.STORE.put_state(state)
+    bal_after = None if _mock() else await youcom.balance()
     await _emit(run_id, "run.completed",
-                detail={"bti": state.bti, "changed_signatures": changed, "cost": state.total_cost})
+                detail={"bti": state.bti, "changed_signatures": changed,
+                        "cost": state.total_cost, "balance_after": bal_after})
     return run_id

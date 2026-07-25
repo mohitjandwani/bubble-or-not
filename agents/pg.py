@@ -117,3 +117,21 @@ class PGStore:
     async def has_runs(self) -> bool:
         async with self.pool.acquire() as con:
             return bool(await con.fetchval("SELECT count(*) FROM runs"))
+
+    async def cache_get(self, probe_id: str, window: str, ttl_hours: float):
+        async with self.pool.acquire() as con:
+            row = await con.fetchrow(
+                '''SELECT payload FROM probe_cache
+                   WHERE probe_id=$1 AND "window"=$2
+                     AND fetched_at > now() - ($3 || ' hours')::interval''',
+                probe_id, window, str(ttl_hours))
+        return json.loads(row["payload"]) if row else None
+
+    async def cache_put(self, probe_id: str, window: str, payload: dict) -> None:
+        async with self.pool.acquire() as con:
+            await con.execute(
+                '''INSERT INTO probe_cache(probe_id, "window", payload)
+                   VALUES($1,$2,$3)
+                   ON CONFLICT(probe_id, "window") DO UPDATE SET
+                     payload=$3, fetched_at=now()''',
+                probe_id, window, json.dumps(payload))
