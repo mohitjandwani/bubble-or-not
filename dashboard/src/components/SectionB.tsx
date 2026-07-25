@@ -147,11 +147,44 @@ function trianglePath(px: number, py: number, size: number): string {
   return `M ${px - size},${py - size * 2} L ${px + size},${py - size * 2} L ${px},${py} Z`;
 }
 
+// Era-alignment slider: shifts the today series -40%..+80% of the pixel span
+// so the user can slide the current run-up to best-fit the 2000 mania phase.
+const OFFSET_MIN = -40;
+const OFFSET_MAX = 80;
+const OFFSET_STORAGE_KEY = "bubbleOrNot.heroEraOffset";
+
+function clampOffset(v: number): number {
+  return Math.max(OFFSET_MIN, Math.min(OFFSET_MAX, v));
+}
+
+function loadStoredOffset(): number {
+  try {
+    const raw = window.localStorage.getItem(OFFSET_STORAGE_KEY);
+    if (raw == null) return 0;
+    const n = Number(raw);
+    return Number.isFinite(n) ? clampOffset(n) : 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default function SectionB({ hero }: { hero: HeroSeries }) {
   const [mode, setMode] = useState<Mode>("price");
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverPhase, setHoverPhase] = useState<number | null>(null);
   const [pinTip, setPinTip] = useState<{ x: number; y: number; content: React.ReactNode } | null>(null);
+
+  // Era-alignment offset: user-driven, applied only in Price view, persisted
+  // across reloads. Dragging is 1:1 with no animation (idle-calm rule only
+  // governs unattended state changes, not direct manipulation).
+  const [offset, setOffset] = useState<number>(() => loadStoredOffset());
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(OFFSET_STORAGE_KEY, String(offset));
+    } catch {
+      // localStorage unavailable (private mode, etc.) — offset just won't persist.
+    }
+  }, [offset]);
 
   // Rescore choreography: a signature that just fired gets a 200ms fall-in on
   // its new pin. Skipped on first mount so the initial page load stays calm.
@@ -213,6 +246,14 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
   const prePeakPrice = peakX != null ? pricePts1999.filter((p) => p[0] <= peakX) : pricePts1999;
   const postPeakPrice = peakX != null ? pricePts1999.filter((p) => p[0] >= peakX) : [];
 
+  // The alignment offset only applies to the today series, and only in Price
+  // view — the 1999 line, its pins and both axes stay put.
+  const offsetPx = mode === "price" ? (offset / 100) * W : 0;
+  const shiftedPricePtsNow: Pt[] = useMemo(
+    () => pricePtsNow.map(([x, y]) => [x + offsetPx, y] as Pt),
+    [pricePtsNow, offsetPx],
+  );
+
   const nowFiredIds = new Set(hero.pins_now.map((p) => p.signature_id));
 
   const pins1999Raw: RawPin[] = hero.pins_1999.map((pin) => {
@@ -220,17 +261,25 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
     return { x, y: yAt(pricePts1999, x), pin, ghost: false };
   });
   const pinsNowRealRaw: RawPin[] = hero.pins_now.map((pin) => {
-    const x = phaseOf(rangeNow, pin.date) * W;
-    return { x, y: yAt(pricePtsNow, x), pin, ghost: false };
+    const x = phaseOf(rangeNow, pin.date) * W + offsetPx;
+    return { x, y: yAt(shiftedPricePtsNow, x), pin, ghost: false };
   });
   // The visual punch: a 1999 pin with no counterpart yet renders as a faint
-  // ghost slot on today's line, at the same phase % as the 1999 firing.
+  // ghost slot on today's line, at the same phase % as the 1999 firing. The
+  // ghost's x stays anchored to the 1999 phase (not shifted); if the shifted
+  // today line no longer reaches that x, the ghost has nothing to sit on and
+  // is dropped rather than drawn off the line.
   const pinsNowGhostRaw: RawPin[] = hero.pins_1999
     .filter((pin) => !nowFiredIds.has(pin.signature_id))
     .map((pin) => {
       const x = phaseOf(range1999, pin.date) * W;
-      return { x, y: yAt(pricePtsNow, x), pin, ghost: true };
-    });
+      if (shiftedPricePtsNow.length === 0) return null;
+      const xMin = shiftedPricePtsNow[0][0];
+      const xMax = shiftedPricePtsNow[shiftedPricePtsNow.length - 1][0];
+      if (x < xMin || x > xMax) return null;
+      return { x, y: yAt(shiftedPricePtsNow, x), pin, ghost: true };
+    })
+    .filter((p): p is RawPin => p !== null);
 
   const stacked1999 = stackPins(pins1999Raw);
   const stackedNow = stackPins([...pinsNowRealRaw, ...pinsNowGhostRaw]);
@@ -257,9 +306,24 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
   const vNowAtHover =
     hoverPhase != null
       ? mode === "price"
-        ? valueAtPhase(eraNow, rangeNow, hoverPhase)
+        ? (() => {
+            // The today curve is shifted by offsetPx on screen, so the phase it
+            // shows at a given hovered pixel is offset from the raw hover phase.
+            const adjustedPhase = hoverPhase - offset / 100;
+            if (adjustedPhase < 0 || adjustedPhase > 1) return null;
+            return valueAtPhase(eraNow, rangeNow, adjustedPhase);
+          })()
         : valueAtPhase(ratesNow, rrangeNow, hoverPhase)
       : null;
+
+  // Alignment readout: where today's last point (after the shift) currently
+  // lands on the 1999 calendar axis.
+  const shiftedLastX = shiftedPricePtsNow.length ? shiftedPricePtsNow[shiftedPricePtsNow.length - 1][0] : W + offsetPx;
+  const impliedFrac = clamp01(shiftedLastX / W);
+  const impliedTimeMs = range1999[0] + impliedFrac * (range1999[1] - range1999[0]);
+  const alignReadout = Number.isFinite(impliedTimeMs)
+    ? `today ≈ ${new Date(impliedTimeMs).toLocaleDateString(undefined, { month: "short", year: "numeric" })}`
+    : `${offset >= 0 ? "+" : ""}${offset}%`;
 
   const yearsBottomPrice = yearTicks(range1999, 1996, 2001);
   const nowEndYearPrice = eraNow.length ? new Date(eraNow[eraNow.length - 1].t).getFullYear() : new Date().getFullYear();
@@ -321,36 +385,68 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
     <section className="block">
       <div className="section-title">Section B — Hero overlay chart</div>
       <div className="panel hero-chart-wrap">
-        <div className="hero-legend">
-          <span className="legend-item">
-            <span className="legend-swatch" style={{ background: "var(--amber)" }} />
-            1999
-          </span>
-          <span className="legend-item">
-            <span className="legend-swatch" style={{ background: "var(--cyan)" }} />
-            Today
-          </span>
+        <div className="hero-controls">
+          <div className="hero-legend">
+            <span className="legend-item">
+              <span className="legend-swatch" style={{ background: "var(--amber)" }} />
+              1999
+            </span>
+            <span className="legend-item">
+              <span className="legend-swatch" style={{ background: "var(--cyan)" }} />
+              Today
+            </span>
+          </div>
+
+          <div className={cx("era-slider", mode !== "price" && "era-slider-disabled")}>
+            <span
+              className="tip-wrap era-slider-label"
+              data-tip="Reset alignment"
+              role="button"
+              tabIndex={0}
+              onClick={() => setOffset(0)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") setOffset(0);
+              }}
+            >
+              align eras{offset !== 0 && <span className="era-reset"> ×</span>}
+            </span>
+            <input
+              type="range"
+              min={OFFSET_MIN}
+              max={OFFSET_MAX}
+              step={1}
+              value={offset}
+              disabled={mode !== "price"}
+              onChange={(e) => setOffset(clampOffset(Number(e.target.value)))}
+              aria-label="Shift today's series to align eras, percent of chart width"
+              style={{
+                background: `linear-gradient(to right, var(--amber) ${((offset - OFFSET_MIN) / (OFFSET_MAX - OFFSET_MIN)) * 100}%, var(--border) ${((offset - OFFSET_MIN) / (OFFSET_MAX - OFFSET_MIN)) * 100}%)`,
+              }}
+            />
+            <span className="era-readout tnum">{mode === "price" ? alignReadout : "—"}</span>
+          </div>
+
+          <div className="hero-toggle" role="tablist" aria-label="Price or rates view">
+            <button
+              role="tab"
+              aria-selected={mode === "price"}
+              className={cx(mode === "price" && "active")}
+              onClick={() => setMode("price")}
+            >
+              Price
+            </button>
+            <button
+              role="tab"
+              aria-selected={mode === "rates"}
+              className={cx(mode === "rates" && "active")}
+              onClick={() => setMode("rates")}
+            >
+              Rates
+            </button>
+          </div>
         </div>
 
-        <div className="hero-toggle" role="tablist" aria-label="Price or rates view">
-          <button
-            role="tab"
-            aria-selected={mode === "price"}
-            className={cx(mode === "price" && "active")}
-            onClick={() => setMode("price")}
-          >
-            Price
-          </button>
-          <button
-            role="tab"
-            aria-selected={mode === "rates"}
-            className={cx(mode === "rates" && "active")}
-            onClick={() => setMode("rates")}
-          >
-            Rates
-          </button>
-        </div>
-
+        <div className="hero-canvas">
         {isEmpty ? (
           <div className="hero-skeleton" style={{ height: TOTAL_H }} />
         ) : (
@@ -359,7 +455,7 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
             viewBox={`0 0 ${W} ${TOTAL_H}`}
             width="100%"
             height={TOTAL_H}
-            style={{ display: "block" }}
+            style={{ display: "block", overflow: "hidden" }}
             onMouseMove={handleMove}
             onMouseLeave={handleLeave}
           >
@@ -385,21 +481,21 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
                     opacity={0.55}
                   />
                 )}
-                {pricePtsNow.length > 1 && (
-                  <polyline points={ptsToStr(pricePtsNow)} stroke="var(--cyan)" strokeWidth={2.5} fill="none" />
+                {shiftedPricePtsNow.length > 1 && (
+                  <polyline points={ptsToStr(shiftedPricePtsNow)} stroke="var(--cyan)" strokeWidth={2.5} fill="none" />
                 )}
-                {pricePtsNow.length > 0 && (
+                {shiftedPricePtsNow.length > 0 && (
                   <g className="live-dot-group">
                     <circle
-                      cx={pricePtsNow[pricePtsNow.length - 1][0]}
-                      cy={pricePtsNow[pricePtsNow.length - 1][1]}
+                      cx={shiftedPricePtsNow[shiftedPricePtsNow.length - 1][0]}
+                      cy={shiftedPricePtsNow[shiftedPricePtsNow.length - 1][1]}
                       r={3.5}
                       fill="var(--cyan)"
                       className="live-ping"
                     />
                     <circle
-                      cx={pricePtsNow[pricePtsNow.length - 1][0]}
-                      cy={pricePtsNow[pricePtsNow.length - 1][1]}
+                      cx={shiftedPricePtsNow[shiftedPricePtsNow.length - 1][0]}
+                      cy={shiftedPricePtsNow[shiftedPricePtsNow.length - 1][1]}
                       r={3.5}
                       fill="var(--cyan)"
                     />
@@ -476,15 +572,21 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
           </svg>
         )}
 
-        {hoverPhase != null && v1999AtHover && vNowAtHover && (
+        {hoverPhase != null && v1999AtHover && (
           <HoverTip leftPct={hoverPhase * 100} topPx={PAD_TOP + 18}>
             <div className="tip-title">phase {Math.round(hoverPhase * 100)}%</div>
             <div className="tip-amber tnum">
               1999 · {fmtDate(v1999AtHover.t)} · {mode === "price" ? fmtPrice(v1999AtHover.v) : fmtRate(v1999AtHover.v)}
             </div>
-            <div className="tip-cyan tnum">
-              today · {fmtDate(vNowAtHover.t)} · {mode === "price" ? fmtPrice(vNowAtHover.v) : fmtRate(vNowAtHover.v)}
-            </div>
+            {vNowAtHover ? (
+              <div className="tip-cyan tnum">
+                today · {fmtDate(vNowAtHover.t)} · {mode === "price" ? fmtPrice(vNowAtHover.v) : fmtRate(vNowAtHover.v)}
+              </div>
+            ) : (
+              <div className="tip-cyan" style={{ opacity: 0.6 }}>
+                today · shifted off-canvas
+              </div>
+            )}
           </HoverTip>
         )}
 
@@ -493,6 +595,7 @@ export default function SectionB({ hero }: { hero: HeroSeries }) {
             {pinTip.content}
           </HoverTip>
         )}
+        </div>
       </div>
     </section>
   );
