@@ -1,0 +1,102 @@
+# Bubble or Not — Render Blueprint (PLAN.md Pass 6)
+#
+# Push to main => Render rebuilds and redeploys both services automatically
+# (autoDeploy: true, branch: main). No CLI step, no dashboard click.
+#
+# !! NEVER add a preDeployCommand or buildCommand that runs schema.sql. !!
+# schema.sql line 3 is `DROP TABLE IF EXISTS ... CASCADE`, so automating it
+# would wipe every stored run on every deploy — including the past run_id that
+# PLAN.md Pass 8 relies on as demo insurance. Apply it exactly once, by hand:
+#     render psql bubble-db < schema.sql
+# See DEPLOY.md.
+
+databases:
+  - name: bubble-db
+    databaseName: bubble
+    plan: basic-256mb
+    region: oregon
+    postgresMajorVersion: "16"
+
+services:
+  # ---- API: FastAPI + the agent pipeline ---------------------------------
+  # Starter, not free: PLAN.md §10 flags free-tier spin-down as a demo-day
+  # gotcha, and Pass 6 explicitly tests "20+ min idle, reload -> instant".
+  - type: web
+    name: bubble-api
+    runtime: python
+    plan: starter
+    region: oregon
+    repo: https://github.com/mohitjandwani/bubble-or-not
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn agents.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.11"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bubble-db
+          property: connectionString
+      # Secrets: sync:false means Render prompts once and never stores them in git.
+      - key: YOU_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: FMP_API_KEY
+        sync: false
+      - key: ADMIN_KEY
+        sync: false
+
+  # ---- SPA: static site that proxies the API ----------------------------
+  # dashboard/src/api.ts calls relative /state, /events, /evidence/* with no
+  # base URL. These rewrites are server-side proxies, so the browser only ever
+  # sees one origin: no CORS, and api.ts needs no change.
+  # /fixtures/* is deliberately NOT rewritten — it stays local so the offline
+  # fallback in useDashboardData.ts keeps working when the API is down.
+  - type: web
+    name: bubble-web
+    runtime: static
+    repo: https://github.com/mohitjandwani/bubble-or-not
+    branch: main
+    autoDeploy: true
+    buildCommand: cd dashboard && npm ci && npm run build
+    staticPublishPath: dashboard/dist
+    routes:
+      - type: rewrite
+        source: /state
+        destination: https://bubble-api.onrender.com/state
+      - type: rewrite
+        source: /events
+        destination: https://bubble-api.onrender.com/events
+      - type: rewrite
+        source: /evidence/*
+        destination: https://bubble-api.onrender.com/evidence/*
+      - type: rewrite
+        source: /healthz
+        destination: https://bubble-api.onrender.com/healthz
+      # SPA fallback MUST stay last, or it swallows the API routes above.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+# ---- Scheduled rescore (Pass 6 item 2) ---------------------------------
+# Deliberately left out of the initial deploy. Pass 3 is live, so every run
+# spends real You.com budget ($0.60-2.20). To enable: uncomment and push to
+# main — the Blueprint sync creates it. Set ADMIN_KEY on it in the dashboard.
+#
+#  - type: cron
+#    name: bubble-cron
+#    runtime: python
+#    plan: starter
+#    region: oregon
+#    branch: main
+#    schedule: "0 */6 * * *"
+#    buildCommand: pip install -r requirements.txt
+#    startCommand: >-
+#      curl -fsS -X POST -H "X-Admin-Key: $ADMIN_KEY"
+#      https://bubble-api.onrender.com/rescore
+#    envVars:
+#      - key: ADMIN_KEY
+#        sync: false
