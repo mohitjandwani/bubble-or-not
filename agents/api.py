@@ -90,3 +90,11 @@ async def rescore(x_admin_key: str = Header(default="")):
 @app.get("/healthz")
 async def healthz():
     return {"ok": True, "store": type(store_mod.STORE).__name__}
+
+
+# Prod: the built SPA is served same-origin from /. Mounted LAST so the API
+# routes above win; html=True gives SPA index fallback. Local dev keeps Vite.
+_DIST = Path(__file__).resolve().parents[1] / "dashboard" / "dist"
+if _DIST.exists():
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/", StaticFiles(directory=_DIST, html=True), name="spa")

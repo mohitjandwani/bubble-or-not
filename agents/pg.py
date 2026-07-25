@@ -18,6 +18,14 @@ class PGStore:
 
     async def init(self, dsn: str) -> None:
         self.pool = await asyncpg.create_pool(dsn, min_size=2, max_size=8)
+        # fresh database (e.g. first boot on Render) → apply the DDL once
+        async with self.pool.acquire() as con:
+            exists = await con.fetchval(
+                "SELECT to_regclass('public.runs') IS NOT NULL")
+            if not exists:
+                from pathlib import Path
+                ddl = (Path(__file__).resolve().parents[1] / "schema.sql").read_text()
+                await con.execute(ddl)
 
     # ---- writes -------------------------------------------------------------
     async def put_state(self, state: StatePayload, *, make_current: bool = True) -> None:

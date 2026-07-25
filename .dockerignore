@@ -1,0 +1,10 @@
+.venv
+.git
+.env
+.lavish
+node_modules
+dashboard/node_modules
+dashboard/dist
+data/cache
+__pycache__
+**/__pycache__

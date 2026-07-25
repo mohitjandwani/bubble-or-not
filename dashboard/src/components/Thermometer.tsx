@@ -30,6 +30,11 @@ export default function Thermometer({ data }: { data: ThermometerData }) {
           1999 peak baseline
         </text>
       </svg>
+      {data.baseline_citation && (
+        <a className="source-chip" href={data.baseline_citation} target="_blank" rel="noreferrer">
+          source ↗
+        </a>
+      )}
     </div>
   );
 }
