@@ -4,12 +4,14 @@ const PLATES = [
   {
     src: "/archive/win95-launch-crowd.webp",
     year: "1995",
+    pos: "50% 38%",
     lead: "Midnight buyers hoist Windows 95 upgrades above a retail floor.",
     detail: "Software sold like stadium tickets. Queues formed before the doors opened.",
   },
   {
     src: "/archive/win95-retail-shelf.webp",
     year: "1995",
+    pos: "38% 45%",
     lead: "Shelves stocked ahead of the launch: “Available from midnight.”",
     detail: "The supply build-out arrived first — demand was assumed, then priced.",
   },
@@ -25,7 +27,7 @@ export default function ArchiveBand() {
         {PLATES.map((p) => (
           <figure className="archive-plate" key={p.src}>
             <div className="plate-frame">
-              <img src={p.src} alt={p.lead} loading="lazy" decoding="async" />
+              <img src={p.src} alt={p.lead} loading="lazy" decoding="async" style={{ objectPosition: p.pos }} />
               <span className="plate-year tnum">{p.year}</span>
               <span className="plate-sheen" aria-hidden="true" />
             </div>

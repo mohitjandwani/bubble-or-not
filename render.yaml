@@ -19,8 +19,8 @@ databases:
 
 services:
   # ---- API: FastAPI + the agent pipeline ---------------------------------
-  # Starter, not free: PLAN.md §10 flags free-tier spin-down as a demo-day
-  # gotcha, and Pass 6 explicitly tests "20+ min idle, reload -> instant".
+  # NOTE: on the FREE plan (no payment method on the workspace yet). Free spins
+  # down after ~15 min idle -> ~50s cold start. PLAN.md §10 flags this; upgrade
   - type: web
     name: bubble-api
     runtime: python
@@ -66,16 +66,16 @@ services:
     routes:
       - type: rewrite
         source: /state
-        destination: https://bubble-api.onrender.com/state
+        destination: https://bubble-api-y4s4.onrender.com/state
       - type: rewrite
         source: /events
-        destination: https://bubble-api.onrender.com/events
+        destination: https://bubble-api-y4s4.onrender.com/events
       - type: rewrite
         source: /evidence/*
-        destination: https://bubble-api.onrender.com/evidence/*
+        destination: https://bubble-api-y4s4.onrender.com/evidence/*
       - type: rewrite
         source: /healthz
-        destination: https://bubble-api.onrender.com/healthz
+        destination: https://bubble-api-y4s4.onrender.com/healthz
       # SPA fallback MUST stay last, or it swallows the API routes above.
       - type: rewrite
         source: /*
@@ -96,7 +96,7 @@ services:
 #    buildCommand: pip install -r requirements.txt
 #    startCommand: >-
 #      curl -fsS -X POST -H "X-Admin-Key: $ADMIN_KEY"
-#      https://bubble-api.onrender.com/rescore
+#      https://bubble-api-y4s4.onrender.com/rescore
 #    envVars:
 #      - key: ADMIN_KEY
 #        sync: false
