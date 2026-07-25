@@ -1,9 +1,37 @@
 # Deploy — one-time setup, then push to main
 
-**After setup, deploying is:** `git push origin main`. Render rebuilds both services automatically.
+## 🟢 Live now
 
-Repo: <https://github.com/mohitjandwani/bubble-or-not> (private)
-Blueprint: [`render.yaml`](./render.yaml) — 3 resources (Postgres, API, static SPA)
+| | |
+|---|---|
+| **Public dashboard** | <https://bubble-web-ym57.onrender.com> |
+| API | <https://bubble-api-y4s4.onrender.com> |
+| Repo | <https://github.com/mohitjandwani/bubble-or-not> (private) |
+
+**Deploying is now just:** `git push origin main`. Both services rebuild automatically
+(`autoDeploy: yes`, branch `main`).
+
+Render appended random suffixes (`-y4s4`, `-ym57`) because the bare names were taken. The rewrites in
+`render.yaml` have been reconciled to the real API hostname — if you ever recreate the services, redo
+that reconciliation or every API call from the SPA will 404.
+
+### Resource IDs
+
+| Resource | ID | Plan |
+|---|---|---|
+| `bubble-api` | `srv-d9i0pp7abvsc73a80odg` | free |
+| `bubble-web` | `srv-d9i0pub7uimc73aruieg` | free (static) |
+| `bubble-db` | `dpg-d9i0phv15fvs73dl21r0-a` | free Postgres 16 |
+
+### Free-tier caveats you are now living with
+
+- **Spin-down:** the API sleeps after ~15 min idle; the next request takes ~50s. PLAN.md §10 calls this
+  out and Pass 6 tests against it. **Warm the URL right before any demo**, or upgrade to Starter.
+- **The database expires.** Render deletes free Postgres after 30 days. Before then, either upgrade it or
+  re-apply `schema.sql` to a new one.
+- The services were created directly through the Render REST API, not by applying `render.yaml`. The
+  blueprint is accurate and validates (`"valid": true`), but it is documentation until someone applies it —
+  so edits to `render.yaml` alone will **not** change the running services.
 
 ---
 
@@ -188,4 +216,7 @@ To test it without waiting 6 hours, temporarily set `schedule: "*/10 * * * *"`, 
 | All runs vanished after a deploy | Something is running `schema.sql` automatically | Remove it. See "The one rule". |
 | First request after idle takes ~50s | Service is on the free tier | Upgrade `bubble-api` to Starter |
 | Boot OOM | Starter is 512MB; `yfinance` pulls pandas + numpy | Upgrade the instance, or trim the dependency |
-| `need_payment_info` | No payment method on the workspace | See Prerequisite |
+| `need_payment_info` | No payment method on the workspace | Use `plan: free` everywhere (what we did), or add a card |
+| First deploy dies with `UndefinedTableError: relation "runs" does not exist` | The service booted before `schema.sql` was applied — `api.py` startup queries `runs` | Apply the schema, then redeploy. Harmless ordering artifact, not a code bug. |
+| `psql: SSL connection has been closed unexpectedly` against Render Postgres | **Local psql 17/18 defaults to direct TLS negotiation, which Render's proxy rejects.** Not a Render or credentials problem. | Use asyncpg instead — it connects fine: `asyncpg.connect(dsn, ssl='require')`. This is how the schema was applied. |
+| Any external DB connection hangs then closes | Render Postgres ships with an **empty IP allowlist**, blocking all external access | Add your IP: `PATCH /v1/postgres/{id}` with `ipAllowList: [{"cidrBlock":"<your-ip>/32"}]`. Internal access from `bubble-api` is unaffected. |
