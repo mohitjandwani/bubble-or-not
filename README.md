@@ -34,3 +34,15 @@ it always beats shell exports. Smoke tests: `scripts/smoke_you.py {balance|a|b}`
 | `GET /evidence/{factor}` | typed evidence + provenance for the drawer |
 | `POST /rescore` | `X-Admin-Key` header; 409 if a run is active |
 | `GET /healthz` | liveness |
+
+## Demo insurance
+
+Best replay run (rich evidence, 3-way F3 fan-out in trace, 4 fired signatures):
+
+```
+GET /state?run_id=run-0725-012147        # BTI 32.7 · 84 evidence rows
+```
+
+If a live rescore misbehaves on stage, point the SPA at this run — every run is
+fully replayable because the DB is the event log. The Engine tab (`#engine`)
+works regardless; its trace feed shows whatever the last runs did.
