@@ -35,6 +35,11 @@ class YouError(RuntimeError):
     pass
 
 
+# Per-endpoint concurrency caps (agents-README §4: search 5, research 3)
+SEM = {"search": asyncio.Semaphore(5), "research": asyncio.Semaphore(3),
+       "finance_research": asyncio.Semaphore(4), "contents": asyncio.Semaphore(5)}
+
+
 def _key() -> str:
     return os.environ["YOU_API_KEY"]
 
@@ -69,7 +74,8 @@ async def research(input_text: str, effort: str = "standard",
     if output_schema:
         payload["output_schema"] = output_schema
     t0 = time.monotonic()
-    body = await _post(f"{API}/research", payload)
+    async with SEM["research"]:
+        body = await _post(f"{API}/research", payload)
     out = body.get("output", body)
     content = out.get("content")
     if output_schema and isinstance(content, str):
@@ -82,8 +88,9 @@ async def research(input_text: str, effort: str = "standard",
 
 async def finance_research(input_text: str, effort: str = "deep") -> dict:
     t0 = time.monotonic()
-    body = await _post(f"{API}/finance_research",
-                       {"input": input_text, "research_effort": effort})
+    async with SEM["finance_research"]:
+        body = await _post(f"{API}/finance_research",
+                           {"input": input_text, "research_effort": effort})
     out = body.get("output", body)
     return {"content": out.get("content") or "", "content_type": out.get("content_type"),
             "sources": out.get("sources") or [],
@@ -103,7 +110,7 @@ async def search(query: str, *, count: int = 20, freshness: Optional[str] = None
         params["livecrawl"] = livecrawl
         params["livecrawl_formats"] = ["markdown"]
     t0 = time.monotonic()
-    async with httpx.AsyncClient(timeout=60) as cli:
+    async with SEM["search"], httpx.AsyncClient(timeout=60) as cli:
         r = await cli.get(f"{INDEX}/search", headers={"X-API-Key": _key()}, params=params)
     if r.status_code != 200:
         raise YouError(f"search -> {r.status_code}: {r.text[:300]}")
@@ -112,6 +119,18 @@ async def search(query: str, *, count: int = 20, freshness: Optional[str] = None
     n_pages = len(results.get("web", [])) + len(results.get("news", []))
     cost = COST[("search", None)] + (0.001 * n_pages if livecrawl else 0)
     return {"results": results, "cost_usd": round(cost, 4),
+            "elapsed_ms": int((time.monotonic() - t0) * 1000)}
+
+
+async def contents(urls: list[str], max_age: int = 86400) -> dict:
+    """Fetch full page markdown for URLs already in hand (Search → Contents)."""
+    t0 = time.monotonic()
+    async with SEM["contents"]:
+        body = await _post(f"{INDEX}/contents",
+                           {"urls": urls, "formats": ["markdown", "metadata"],
+                            "max_age": max_age}, timeout=120)
+    pages = body if isinstance(body, list) else body.get("results", body.get("contents", []))
+    return {"pages": pages, "cost_usd": round(COST[("contents", None)] * len(urls), 4),
             "elapsed_ms": int((time.monotonic() - t0) * 1000)}
 
 

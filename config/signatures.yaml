@@ -1,114 +1,107 @@
-# The 12-row signature board. Order here = board order (grouped by factor).
-# lamp rule (HANDOVER §4): strong_count >= 1 -> fired · weak_count >= k_weak -> partial
-#                          weak_count 1..k-1 -> watch · else -> not · unmeasurable -> no_data
-# precedent_1999 text+citations are PLACEHOLDERS until researched via You.com in Pass 4
-# (marked TODO-cite). Thresholds live here, never in the LLM.
-
 signatures:
-  - id: sig-f1-path
-    factor: f1
-    name: Tightening path steepens
-    stage: early
-    k_weak: 3
-    threshold_text: "fires when implied 12m path steepness > +100bp"
-    precedent_1999: "Jun-99 first hike; by Feb-00 the path priced +125bp/12m"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f1-rhetoric
-    factor: f1
-    name: Fed rhetoric turns hawkish
-    stage: early
-    k_weak: 3
-    threshold_text: "fires when rhetoric delta (last 5 vs prior 5 speeches) > +0.4"
-    precedent_1999: "Greenspan 'irrational exuberance' posture hardened through H2-99"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f2-revisions
-    factor: f2
-    name: Estimate revisions turn negative
-    stage: mid
-    k_weak: 3
-    threshold_text: "fires when median bellwether NTM revision < 0 for 2 consecutive checks"
-    precedent_1999: "Revisions for the CSCO/NT complex decelerated ~2 quarters pre-peak"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f2-guidance
-    factor: f2
-    name: Bellwether guidance cracks
-    stage: late
-    k_weak: 3
-    threshold_text: "fires on any strong event: guidance cut/withdrawn or reported miss vs own guidance"
-    precedent_1999: "Mar-00 onward: serial guidance walk-backs across infrastructure vendors"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f2-gpu
-    factor: f2
-    name: GPU spot prices rolling over
-    stage: mid
-    k_weak: 3
-    threshold_text: "fires when H100/B200 spot 30d change < -15% (median of sources)"
-    precedent_1999: "No physical-capacity proxy existed; nearest analog was router/DRAM channel pricing"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f3-churn
-    factor: f3
-    name: Usage-layer churn accelerating
-    stage: early
-    k_weak: 3
-    threshold_text: "fires when S1-Q4 destruction >= threshold for 2 consecutive weeks"
-    precedent_1999: "Dot-com ad-revenue dependents began failing quarters before infrastructure cracked"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f3-drift
-    factor: f3
-    name: Revenue definition drift at labs
-    stage: mid
-    k_weak: 2
-    threshold_text: "fires on any S1-B1 drift event (metric redefinition in official/press statements)"
-    precedent_1999: "Barter/ad-swap 'revenue' at portals; pro-forma metrics displacing GAAP"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f3-vendor
-    factor: f3
-    name: Vendor-financed revenue material
-    stage: mid
-    k_weak: 3
-    threshold_text: "fires when Circularity Ratio >= 1% of assets OR Revenue Quality score <= 0.6"
-    precedent_1999: "Lucent/Nortel/Cisco vendor financing peaked ≈$15-25B, CR ≈ 2-3%"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f3-distress
-    factor: f3
-    name: Capex-layer edge distress
-    stage: late
-    k_weak: 2
-    threshold_text: "fires on any strong S2-Q5/S2-B1 event touching a registry edge"
-    precedent_1999: "Vendor-financed carriers defaulted, forcing Lucent/Nortel writedowns"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f4-megasale
-    factor: f4
-    name: Insider mega-sale wave
-    stage: late
-    k_weak: 3
-    threshold_text: "fires when >$100M single-insider sale programs (90d) >= 4"
-    precedent_1999: "Insider selling ran ≈3-4x historical norm through H2-99"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f5-concentration
-    factor: f5
-    name: Concentration at record
-    stage: early
-    k_weak: 3
-    threshold_text: "fires when top-10 S&P weight > 38%"
-    precedent_1999: "Top-10 weight peaked ≈27% in Mar-00 — today already exceeds it"   # TODO-cite
-    precedent_citation_url: null
-
-  - id: sig-f5-breadth
-    factor: f5
-    name: Breadth divergence extreme
-    stage: mid
-    k_weak: 3
-    threshold_text: "fires when SPY-RSP 6m gap > 8pp AND %>200dma < 45%"
-    precedent_1999: "NYSE breadth negative from Apr-98 while the index made highs into Mar-00"   # TODO-cite
-    precedent_citation_url: null
+- id: sig-f1-path
+  factor: f1
+  name: Tightening path steepens
+  stage: early
+  k_weak: 3
+  threshold_text: fires when implied 12m path steepness > +100bp
+  precedent_1999: The Fed began a 1999-06 tightening cycle, lifting rates six times by 2000-05 from 4.75%
+    to 6.50%.
+  precedent_citation_url: https://www.federalreserve.gov/monetarypolicy/files/FOMC19990630meeting.pdf
+- id: sig-f1-rhetoric
+  factor: f1
+  name: Fed rhetoric turns hawkish
+  stage: early
+  k_weak: 3
+  threshold_text: fires when rhetoric delta (last 5 vs prior 5 speeches) > +0.4
+  precedent_1999: In 2000-02, Greenspan told Congress the economy had excess demand and booming stock
+    prices were a culprit.
+  precedent_citation_url: https://www.richmondfed.org/publications/research/econ_focus/2023/q1_federal_reserve
+- id: sig-f2-revisions
+  factor: f2
+  name: Estimate revisions turn negative
+  stage: mid
+  k_weak: 3
+  threshold_text: fires when median bellwether NTM revision < 0 for 2 consecutive checks
+  precedent_1999: Intel warned on 2000-09-22 that Q3 sales would miss forecasts, signaling a broad tech
+    earnings slowdown.
+  precedent_citation_url: https://www.latimes.com/archives/la-xpm-2000-sep-22-fi-24926-story.html
+- id: sig-f2-guidance
+  factor: f2
+  name: Bellwether guidance cracks
+  stage: late
+  k_weak: 3
+  threshold_text: 'fires on any strong event: guidance cut/withdrawn or reported miss vs own guidance'
+  precedent_1999: Intel cut its 3Q sales outlook in 2000-09, and the news sparked a global tech sell-off.
+  precedent_citation_url: https://www.nytimes.com/2000/09/23/news/intel-warning-sparks-world-selloff.html
+- id: sig-f2-gpu
+  factor: f2
+  name: GPU spot prices rolling over
+  stage: mid
+  k_weak: 3
+  threshold_text: fires when H100/B200 spot 30d change < -15% (median of sources)
+  precedent_1999: In 2001-06, IDC said DRAM sales would fall 45.7% to $15.7B from $28.9B as prices collapsed.
+  precedent_citation_url: https://www.theregister.com/2001/06/26/dram_sales_to_plummet/
+- id: sig-f3-churn
+  factor: f3
+  name: Usage-layer churn accelerating
+  stage: early
+  k_weak: 3
+  threshold_text: fires when S1-Q4 destruction >= threshold for 2 consecutive weeks
+  precedent_1999: Exodus Communications filed Chapter 11 in 2001-09 after losing customers in the collapsing
+    internet economy.
+  precedent_citation_url: https://www.latimes.com/archives/la-xpm-2001-sep-27-fi-50296-story.html
+- id: sig-f3-drift
+  factor: f3
+  name: Revenue definition drift at labs
+  stage: mid
+  k_weak: 2
+  threshold_text: fires on any S1-B1 drift event (metric redefinition in official/press statements)
+  precedent_1999: Exodus filed Chapter 11 in 2001-09, a concrete dot-com-era example of business-model
+    and revenue-overbuild drift.
+  precedent_citation_url: https://www.latimes.com/archives/la-xpm-2001-sep-27-fi-50296-story.html
+- id: sig-f3-vendor
+  factor: f3
+  name: Vendor-financed revenue material
+  stage: mid
+  k_weak: 3
+  threshold_text: fires when Circularity Ratio >= 1% of assets OR Revenue Quality score <= 0.6
+  precedent_1999: By 2002-01, the SEC warned that pro forma earnings could mislead investors by obscuring
+    GAAP results.
+  precedent_citation_url: https://www.cnet.com/tech/tech-industry/behind-pro-forma-earnings/
+- id: sig-f3-distress
+  factor: f3
+  name: Capex-layer edge distress
+  stage: late
+  k_weak: 2
+  threshold_text: fires on any strong S2-Q5/S2-B1 event touching a registry edge
+  precedent_1999: Exodus hit bankruptcy fears in 2001-09 as its customers and network partners were pulled
+    into the telecom collapse.
+  precedent_citation_url: https://www.nytimes.com/2001/09/26/business/technology-exodus-communications-hit-by-bankruptcy-fears.html
+- id: sig-f4-megasale
+  factor: f4
+  name: Insider mega-sale wave
+  stage: late
+  k_weak: 3
+  threshold_text: fires when >$100M single-insider sale programs (90d) >= 4
+  precedent_1999: By mid-2000, insiders at failed telecom names had sold hundreds of millions of dollars
+    of stock before the crash.
+  precedent_citation_url: https://www.chicagotribune.com/2002/06/23/insiders-sell-as-failure-looms-2/
+- id: sig-f5-concentration
+  factor: f5
+  name: Concentration at record
+  stage: early
+  k_weak: 3
+  threshold_text: fires when top-10 S&P weight > 38%
+  precedent_1999: By 2000-12, the S&P 500's top 10 stocks had reached about 23% weight, near the dot-com-era
+    concentration peak.
+  precedent_citation_url: https://www.rbcwealthmanagement.com/en-asia/insights/the-great-narrowing-sp-500-concentration
+- id: sig-f5-breadth
+  factor: f5
+  name: Breadth divergence extreme
+  stage: mid
+  k_weak: 3
+  threshold_text: fires when SPY-RSP 6m gap > 8pp AND %>200dma < 45%
+  precedent_1999: In 2000, the market's narrow leadership reversed after the dot-com peak, and the S&P
+    500 fell into a long lost decade.
+  precedent_citation_url: https://www.morganstanley.com/im/publication/insights/articles/article_stockmarketconcentration.pdf
